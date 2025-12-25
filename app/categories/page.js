@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import CategoryStatsCards from "../components/CategoryStatsCards";
-import CategoriesTable from "../components/CategoriesTable";
-import AddCategoryModal from "../components/AddCategoryModal";
+import CategoryStatsCards from "../components/categories/CategoryStatsCards";
+import CategoriesTable from "../components/categories/CategoriesTable";
+import AddCategoryModal from "../components/categories/AddCategoryModal";
 
 export default function CategoriesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

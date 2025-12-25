@@ -1,7 +1,7 @@
 import { Cairo } from "next/font/google";
 import "./globals.css";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
+import Sidebar from "./components/layout/Sidebar";
+import Header from "./components/layout/Header";
 
 const cairo = Cairo({
   subsets: ["arabic"],

@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { UserPlus } from "lucide-react";
-import StatsCards from "../components/StatsCards";
-import AccountsTable from "../components/AccountsTable";
-import AddUserModal from "../components/AddUserModal";
+import AccountStatsCards from "../components/accounts/AccountStatsCards";
+import AccountsTable from "../components/accounts/AccountsTable";
+import AddUserModal from "../components/accounts/AddUserModal";
 
 export default function AccountsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function AccountsPage() {
       </div>
 
       {/* Stats Cards */}
-      <StatsCards />
+      <AccountStatsCards />
 
       {/* Data Table */}
       <AccountsTable />

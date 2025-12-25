@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import OrdersStatsCards from "../components/OrdersStatsCards";
-import OrdersTable from "../components/OrdersTable";
+import OrdersStatsCards from "../components/orders/OrdersStatsCards";
+import OrdersTable from "../components/orders/OrdersTable";
 
 export default function OrdersPage() {
   return (

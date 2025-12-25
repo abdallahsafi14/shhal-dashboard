@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import PointsStatsCards from "../components/PointsStatsCards";
-import PointsTable from "../components/PointsTable";
+import PointsStatsCards from "../components/points/PointsStatsCards";
+import PointsTable from "../components/points/PointsTable";
 
 export default function PointsPage() {
   return (

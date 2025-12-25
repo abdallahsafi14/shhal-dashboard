@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import EditSettingsModal from "../components/EditSettingsModal";
+import EditSettingsModal from "../components/settings/EditSettingsModal";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("system"); // 'visitor' or 'system'

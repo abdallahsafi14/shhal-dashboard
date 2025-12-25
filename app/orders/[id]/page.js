@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import RejectOrderModal from "../../components/RejectOrderModal";
+import RejectOrderModal from "../../components/orders/RejectOrderModal";
 
 export default function OrderDetailsPage({ params }) {
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
