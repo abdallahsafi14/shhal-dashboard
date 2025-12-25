@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Search, Bell, Settings } from "lucide-react";
+import Link from "next/link";
 import Image from "next/image";
 
 export default function Header() {
@@ -30,9 +31,9 @@ export default function Header() {
             <Bell className="w-5 h-5" />
           </button>
           
-          <button className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors">
+          <Link href="/settings" className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 text-gray-500 transition-colors">
             <Settings className="w-5 h-5" />
-          </button>
+          </Link>
 
           {/* Profile Picture */}
           <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden border border-gray-200 relative">

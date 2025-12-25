@@ -41,21 +41,21 @@ export default function AdsStatsCards() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {stats.map((stat, index) => (
-        <div key={index} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
-          <div className="flex justify-between items-start mb-4">
+        <div key={index} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+          <div className="flex justify-between items-center mb-4">
             {/* Trend (Left) */}
-            <div className={`flex items-center gap-1 text-xs font-bold ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-              <span>{stat.change}</span>
-              {stat.trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            </div>
-
-            {/* Icon (Right) */}
             <div className={`p-3 rounded-xl ${stat.color}`}>
               <stat.icon className="w-6 h-6" />
             </div>
+
+            {/* Icon (Right) */}
+            <div className={`flex items-center gap-1 text-s font-bold ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+              <span>{stat.change}</span>
+              {stat.trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            </div>
           </div>
 
-          <div className="text-center mt-2">
+          <div className="text-right mt-2">
             <h3 className="text-3xl font-bold text-gray-800 mb-1">{stat.value}</h3>
             <p className="text-sm text-gray-500">{stat.title}</p>
           </div>
