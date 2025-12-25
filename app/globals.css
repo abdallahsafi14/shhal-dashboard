@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* 1. Define the Theme Variables inside @theme */
+@theme {
+  /* Main Brand Colors */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  
+  --color-danger: var(--danger);
+
+  /* Surface Colors (Backgrounds/Cards) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+/* 2. Set the actual color values (Hex Codes) */
+:root {
+  /* PAGE BACKGROUND: Very light gray from the screenshot */
+  --background: #f9fafb; 
+  --foreground: #171717;
+
+  /* CARDS: Pure white (The profile box) */
+  --card: #ffffff;
+  --card-foreground: #171717;
+
+  /* YOUR COLOR: Dark Blue #07334B (Buttons, Sidebar) */
+  --primary: #07334B;
+  --primary-foreground: #ffffff;
+
+  /* YOUR COLOR: Sage Green #8B8A6C (Accents, Icons) */
+  --secondary: #8B8A6C;
+  --secondary-foreground: #ffffff;
+  
+  /* Input Fields */
+  --input: #ffffff;
+  --border: #e5e7eb;
+
+  /* Danger (Delete Account Button) */
+  --danger: #dc2626;
+
+  /* Muted Text (Labels) */
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+}
+
+/* 3. Dark Mode Colors (Auto-switches if user system is Dark) */
+/* @media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    --card: #171717;
+    --card-foreground: #ededed;
+
+    --primary: #07334B; 
+    --primary-foreground: #ffffff;
+    
+    --secondary: #8B8A6C;
+    
+    --input: #262626;
+    --border: #404040;
+    
+    --muted: #262626;
+    --muted-foreground: #a3a3a3;
+  }
+} */
+
+/* 4. Base Styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Custom Utilities for clean inputs */
+@layer utilities {
+  .input-field {
+    @apply w-full rounded-md border border-border bg-input px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  }
+  
+  .card-container {
+    @apply rounded-xl border border-border bg-card text-card-foreground shadow-sm;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
