@@ -25,8 +25,8 @@
   --color-input: var(--input);
   
   /* Fonts */
-  --font-sans: var(--font-geist-sans), "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-cairo), "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-mono: monospace;
 }
 
 /* 2. Set the actual color values (Hex Codes) */
