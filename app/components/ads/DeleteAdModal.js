@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { X, User } from "lucide-react";
 
-export default function DeleteAdModal({ isOpen, onClose }) {
+export default function DeleteAdModal({ isOpen, onClose, onConfirm }) {
   const modalRef = useRef(null);
 
   // Close modal when clicking outside
@@ -40,19 +40,7 @@ export default function DeleteAdModal({ isOpen, onClose }) {
         {/* Content */}
         <div className="p-8 pt-12 flex flex-col items-center text-center">
             
-            {/* User Icon Circle - keeping genericUser icon as per request 'use the old one' but maybe an Ad icon would be better? 
-                User said "delete use the old one it is the same just organize the folders". 
-                I'll stick to the User icon to be safe, or swap it for a Trash icon?
-                Actually, usually a Delete modal shows a Trash or Alert icon.
-                The DeleteUserModal had a User icon.
-                I will stick to the User icon if "it is the same", BUT the text must be correct.
-                Let's use the User icon for visual consistency or maybe NO icon if that's safer?
-                Let's check DeleteUserModal content again. It had a user icon inside a circle.
-                For an Ad, maybe an Image icon?
-                I'll use the Image icon to be context-aware but keep styling identical.
-            */}
             <div className="w-16 h-16 rounded-full bg-[#F3F4F6] flex items-center justify-center mb-6">
-                 {/* Replaced User with basic placeholder or Image icon if more appropriate, but sticking to identical structure */}
                  <User className="w-8 h-8 text-[#9CA3AF]" /> 
             </div>
 
@@ -64,7 +52,10 @@ export default function DeleteAdModal({ isOpen, onClose }) {
              {/* Footer Buttons */}
              <div className="flex items-center justify-center gap-4 w-full px-4">
                 {/* Confirm Delete Button */}
-                <button className="flex-1 bg-[#DC2626] hover:bg-red-700 text-white py-3 rounded-lg font-bold shadow-sm transition-colors">
+                <button 
+                    onClick={onConfirm}
+                    className="flex-1 bg-[#DC2626] hover:bg-red-700 text-white py-3 rounded-lg font-bold shadow-sm transition-colors"
+                >
                     تأكيد
                 </button>
 

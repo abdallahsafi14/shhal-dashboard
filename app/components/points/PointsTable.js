@@ -11,41 +11,25 @@ import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight, Bitcoin, Filter 
 import Image from "next/image";
 import TransactionDetailsModal from "./TransactionDetailsModal";
 
-// Mock Data
-const MOCK_DATA = Array(10).fill(null).map((_, i) => ({
-  id: "12132121313",
-  userName: "محمد احمد علي",
-  pointsBalance: "1598 نقطة",
-  financialValue: "120.56 $",
-  paymentMethod: "120.56 $", // Screenshot shows price again? Or maybe a BTC icon + price? Wait. 
-  // Screenshot col "طريقة الدفع" (Payment Method) shows: "120.56 $" and a B icon? 
-  // Ah, let's look closer at uploaded_image_0.
-  // Col Headers: رقم العملية, اسم المستخدم, رصيد النقاط, القيمة المالية, طريقة الدفع, تاريخ العملية.
-  // Row 1:
-  // ID: 12132121313
-  // Name: محمد احمد علي
-  // Points: 1598 نقطة
-  // Value: 120.56 $
-  // Payment Method: 120.56 $ (and a Bitcoin icon next to it). WAIT. Why is the payment method value same as financial value?
-  // Maybe it means "Paid via Bitcoin, value 120.56$"? Or just the icon represents the method.
-  // Let's assume the column is "Payment Method" and it shows the value + Icon.
-  // Date: 12/12/2024
-  // Status is implied by the row color or action?
-  // Wait, there is a BUTTON column on the LEFT.
-  // The Buttons are: "تم صرفها" (Green), "قيد المعالجة" (Blue), "تم رفضها" (Red).
-  // These look like STATUS BADGES, not buttons. BUT they have a specific style.
-  // Wait, looking at the image, strictly:
-  // The first column (Right) is ID.
-  // The last column (Left) is "حالة العملية" (Operation Status).
-  // The actual actions (Edit/Delete icons) are in a separate column on the FAR LEFT.
-  
-  status: i % 3 === 0 ? "تم صرفها" : i % 3 === 1 ? "قيد المعالجة" : "تم رفضها",
-  date: "12/12/2024",
-}));
+import { usePoints } from "@/hooks/useDashboard";
 
 export default function PointsTable() {
-  const [data] = useState(MOCK_DATA);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { data: pointsData, isLoading } = usePoints({ search: globalFilter });
+  
+  const data = useMemo(() => {
+    if (!pointsData?.data) return [];
+    return pointsData.data.map(item => ({
+      ...item,
+      id: item.id || "---",
+      userName: item.user?.name || "---",
+      pointsBalance: `${item.points || 0} نقطة`,
+      financialValue: `${item.amount || 0} $`,
+      paymentMethod: `${item.amount || 0} $`,
+      date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB') : "---",
+      status: item.status === 'completed' ? "تم صرفها" : item.status === 'pending' ? "قيد المعالجة" : "تم رفضها",
+    }));
+  }, [pointsData]);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false); // Toggle for filter popover

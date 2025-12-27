@@ -10,22 +10,27 @@ import {
 import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-// Mock Data
-const MOCK_DATA = Array(10).fill(null).map((_, i) => ({
-  id: "12132121313",
-  userName: "محمد احمد علي",
-  productName: "سماعة الكترونية...",
-  category: "الالكترونيات",
-  requestType: i % 2 === 0 ? "تحديث منتج" : "اضافة منتج جديد",
-  requiredPoints: "1598 نقطة",
-  date: "12/12/2024",
-  status: i % 3 === 0 ? "تم رفضها" : i % 3 === 1 ? "قيد المعالجة" : "تم قبولها",
-}));
+import { useOrders } from "@/hooks/useDashboard";
 
 export default function OrdersTable() {
-  const [data] = useState(MOCK_DATA);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { data: ordersData, isLoading } = useOrders({ search: globalFilter });
   const router = useRouter();
+
+  const data = useMemo(() => {
+    if (!ordersData?.data) return [];
+    return ordersData.data.map(order => ({
+      ...order,
+      id: order.id || "---",
+      userName: order.user?.name || "---",
+      productName: order.product?.name || "---",
+      category: order.category?.name || "---",
+      requestType: order.type === 'update' ? "تحديث منتج" : "اضافة منتج جديد",
+      requiredPoints: `${order.points || 0} نقطة`,
+      date: order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : "---",
+      status: order.status === 'rejected' ? "تم رفضها" : order.status === 'pending' ? "قيد المعالجة" : "تم قبولها",
+    }));
+  }, [ordersData]);
 
   const handleRowClick = (row) => {
       router.push(`/orders/${row.id}`);

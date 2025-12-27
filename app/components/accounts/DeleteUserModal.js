@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { X, User } from "lucide-react";
 
-export default function DeleteUserModal({ isOpen, onClose }) {
+export default function DeleteUserModal({ isOpen, onClose, onConfirm }) {
   const modalRef = useRef(null);
 
   // Close modal when clicking outside
@@ -53,7 +53,10 @@ export default function DeleteUserModal({ isOpen, onClose }) {
              {/* Footer Buttons */}
              <div className="flex items-center justify-center gap-4 w-full px-4">
                 {/* Confirm Delete Button */}
-                <button className="flex-1 bg-[#DC2626] hover:bg-red-700 text-white py-3 rounded-lg font-bold shadow-sm transition-colors">
+                <button 
+                  onClick={onConfirm}
+                  className="flex-1 bg-[#DC2626] hover:bg-red-700 text-white py-3 rounded-lg font-bold shadow-sm transition-colors"
+                >
                     تأكيد
                 </button>
 

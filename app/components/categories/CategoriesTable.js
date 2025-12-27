@@ -11,25 +11,39 @@ import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-re
 import Image from "next/image";
 import EditCategoryModal from "./EditCategoryModal";
 
-const MOCK_DATA = Array(8).fill(null).map((_, i) => ({
-  id: "123",
-  mainName: "فئة المطاعم",
-  image: "/icons/Logo.png",
-  order: [1, 3, 35, 141, 14, 434, 4, 43][i] || i,
-  subCategories: ["Name1", "Name1"],
-  dateAdded: "12/12/2024",
-  status: i % 2 === 0 ? "فئة مفعلة" : "غير مفعلة",
-}));
+import { useCategories, useCategoryActions } from "@/hooks/useDashboard";
 
 export default function CategoriesTable() {
-  const [data] = useState(MOCK_DATA);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { data: categoriesData, isLoading } = useCategories({ search: globalFilter });
+  const { deleteCategory } = useCategoryActions();
+  
+  const data = useMemo(() => {
+    if (!categoriesData?.data) return [];
+    return categoriesData.data.map(cat => ({
+      ...cat,
+      id: cat.id || "---",
+      mainName: cat.name || "---",
+      image: cat.image || "/icons/Logo.png",
+      order: cat.priority || 0,
+      subCategories: cat.sub_categories?.map(sc => sc.name) || [],
+      dateAdded: cat.created_at ? new Date(cat.created_at).toLocaleDateString('en-GB') : "---",
+      status: cat.status === 'active' ? "فئة مفعلة" : "غير مفعلة",
+    }));
+  }, [categoriesData]);
+
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const handleEditClick = (category) => {
     setSelectedCategory(category);
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (id) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه الفئة؟')) {
+      deleteCategory(id);
+    }
   };
 
   const columns = useMemo(
@@ -97,7 +111,10 @@ export default function CategoriesTable() {
         header: "", 
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <button className="text-[#0E3A53] hover:text-[#062b40] transition-colors">
+            <button 
+              onClick={() => handleDeleteClick(row.original.id)}
+              className="text-[#0E3A53] hover:text-[#062b40] transition-colors"
+            >
               <Trash2 className="w-4 h-4" />
             </button>
             <button 

@@ -12,21 +12,27 @@ import Image from "next/image";
 import EditAdModal from "./EditAdModal";
 import DeleteAdModal from "./DeleteAdModal";
 
-// Mock Data for Ads
-const MOCK_ADS_DATA = Array(10).fill(null).map((_, i) => ({
-  id: "123",
-  name: "خصم للمنتجات",
-  code: "XHIO212ZAX",
-  dimensions: "10233 * 3913",
-  date: "12 / 12 / 2024",
-  media: "/icons/Logo.png", // Using a placeholder image
-  status: i % 2 === 0 ? "نشط" : "متوقف",
-}));
+import { useAds, useAdActions } from "@/hooks/useDashboard";
 
 export default function AdsTable() {
-  const [data] = useState(MOCK_ADS_DATA);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { data: adsData, isLoading } = useAds({ search: globalFilter });
+  const { deleteAd } = useAdActions();
   
+  const data = useMemo(() => {
+    if (!adsData?.data) return [];
+    return adsData.data.map(ad => ({
+      ...ad,
+      id: ad.id || "--aaaa-",
+      name: ad.name || "--ss-",
+      code: ad.code || "--ddd-",
+      dimensions: ad.dimensions || "--eee-",
+      date: ad.created_at ? new Date(ad.created_at).toLocaleDateString('en-GB') : "---",
+      media: ad.media || "/icons/Logo.png",
+      status: ad.status === 'active' ? "نشط" : "متوقف",
+    }));
+  }, [adsData]);
+
   // Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -35,6 +41,13 @@ export default function AdsTable() {
   const handleEditClick = (row) => {
     setSelectedRow(row);
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedRow?.id) {
+       deleteAd(selectedRow.id);
+       setIsDeleteModalOpen(false);
+    }
   };
 
   const handleDeleteClick = (row) => {
@@ -221,7 +234,11 @@ export default function AdsTable() {
       
       {/* Modals */}
       <EditAdModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
-      <DeleteAdModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} />
+      <DeleteAdModal 
+        isOpen={isDeleteModalOpen} 
+        onClose={() => setIsDeleteModalOpen(false)} 
+        onConfirm={handleDeleteConfirm}
+      />
     </>
   );
 }

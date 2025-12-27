@@ -12,21 +12,27 @@ import Image from "next/image";
 import EditUserModal from "./EditUserModal";
 import DeleteUserModal from "./DeleteUserModal";
 
-// Mock Data
-const MOCK_DATA = Array(10).fill(null).map((_, i) => ({
-  id: "123",
-  name: i % 2 === 0 ? "John Carter" : "Sophie Moore",
-  avatar: "/icons/Logo.png", 
-  phone: "05673461834",
-  email: "username@gmail.com",
-  date: "12 / 12 / 2024",
-  status: i % 3 === 0 ? "نشط" : "متوقف",
-}));
+import { useUsers, useUserActions } from "@/hooks/useDashboard";
 
 export default function AccountsTable() {
-  const [data] = useState(MOCK_DATA);
   const [globalFilter, setGlobalFilter] = useState("");
+  const { data: usersData, isLoading } = useUsers({ search: globalFilter });
+  const { deleteUser } = useUserActions();
   
+  const data = useMemo(() => {
+    if (!usersData?.data) return [];
+    return usersData.data.map(user => ({
+      ...user,
+      id: user.id || "---",
+      name: user.name || "---",
+      avatar: user.avatar || "/icons/Logo.png",
+      phone: user.phone || "---",
+      email: user.email || "---",
+      date: user.created_at ? new Date(user.created_at).toLocaleDateString('en-GB') : "---",
+      status: user.status === 'active' ? "نشط" : "متوقف",
+    }));
+  }, [usersData]);
+
   // Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -35,6 +41,13 @@ export default function AccountsTable() {
   const handleEditClick = (row) => {
     setSelectedRow(row);
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedRow?.id) {
+       deleteUser(selectedRow.id);
+       setIsDeleteModalOpen(false);
+    }
   };
 
   const handleDeleteClick = (row) => {
@@ -219,7 +232,11 @@ export default function AccountsTable() {
       
       {/* Modals */}
       <EditUserModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
-      <DeleteUserModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} />
+      <DeleteUserModal 
+        isOpen={isDeleteModalOpen} 
+        onClose={() => setIsDeleteModalOpen(false)} 
+        onConfirm={handleDeleteConfirm}
+      />
     </>
   );
 }

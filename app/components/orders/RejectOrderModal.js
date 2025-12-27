@@ -1,9 +1,10 @@
 "use client";
-import React, { useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
 
-export default function RejectOrderModal({ isOpen, onClose }) {
+export default function RejectOrderModal({ isOpen, onClose, onConfirm }) {
   const modalRef = useRef(null);
+  const [reason, setReason] = useState("");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -51,12 +52,17 @@ export default function RejectOrderModal({ isOpen, onClose }) {
             <textarea
               className="w-full border border-gray-300 rounded-lg p-4 text-right min-h-[150px] focus:outline-none focus:border-primary transition-colors resize-none"
               dir="rtl"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
             ></textarea>
           </div>
 
           {/* Footer Buttons */}
           <div className="flex items-center justify-start gap-4">
-            <button className="bg-[#0E3A53] hover:bg-[#062b40] text-white px-8 py-3 rounded-lg font-bold shadow-sm transition-all transform active:scale-95">
+            <button 
+              onClick={() => onConfirm(reason)}
+              className="bg-[#0E3A53] hover:bg-[#062b40] text-white px-8 py-3 rounded-lg font-bold shadow-sm transition-all transform active:scale-95"
+            >
               أضف السبب
             </button>
             <button 

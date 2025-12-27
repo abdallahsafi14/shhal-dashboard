@@ -1,8 +1,8 @@
-"use client";
+'use client';
 import React, { useState } from "react";
-import AdsStatsCards from "../components/ads/AdsStatsCards";
-import AdsTable from "../components/ads/AdsTable";
-import AddAdModal from "../components/ads/AddAdModal";
+import AdsTable from "@/app/components/ads/AdsTable";
+import AddAdModal from "@/app/components/ads/AddAdModal";
+import AdsStatsCards from "@/app/components/ads/AdsStatsCards";
 
 export default function AdsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);

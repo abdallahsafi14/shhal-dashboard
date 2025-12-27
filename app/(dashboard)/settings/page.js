@@ -1,11 +1,23 @@
 "use client";
 import React, { useState } from "react";
-import EditSettingsModal from "../components/settings/EditSettingsModal";
+import EditSettingsModal from "@/app/components/settings/EditSettingsModal";
+
+import { useSettings, useSettingActions } from "@/hooks/useDashboard";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("system"); // 'visitor' or 'system'
+  const { data: settingsResponse, isLoading } = useSettings();
+  const { updateSettings } = useSettingActions();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isVisitorOpen, setIsVisitorOpen] = useState(false);
+  
+  const settings = settingsResponse?.data || {};
+  const [isVisitorOpen, setIsVisitorOpen] = useState(settings.visitor_mode || false);
+
+  const handleVisitorToggle = () => {
+    const newVal = !isVisitorOpen;
+    setIsVisitorOpen(newVal);
+    updateSettings({ visitor_mode: newVal });
+  };
 
   return (
     <div className="space-y-8">
@@ -35,7 +47,7 @@ export default function SettingsPage() {
                  
                  {/* Custom Toggle Switch */}
                  <button 
-                  onClick={() => setIsVisitorOpen(!isVisitorOpen)}
+                  onClick={handleVisitorToggle}
                   className={`w-14 h-7 rounded-full relative transition-colors duration-200 outline-none ${isVisitorOpen ? 'bg-[#8B8A6C]' : 'bg-gray-300'}`}
                  >
                     <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-200 shadow-sm ${isVisitorOpen ? 'left-1' : 'left-8'}`} />
@@ -69,13 +81,13 @@ export default function SettingsPage() {
                   {/* SMTP HOST */}
                   <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
                      <span className="text-gray-400 font-bold text-xs">SMTP HOST</span>
-                     <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">Mail.cdl.eilk.tepldck.site</span>
+                     <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">{settings.smtp_host || "---"}</span>
                   </div>
 
                   {/* Port */}
                   <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
                      <span className="text-gray-400 font-bold text-xs">Port</span>
-                     <span className="text-gray-600 font-bold text-lg">7493</span>
+                     <span className="text-gray-600 font-bold text-lg">{settings.smtp_port || "---"}</span>
                   </div>
 
                   {/* Password */}
@@ -87,13 +99,13 @@ export default function SettingsPage() {
                   {/* Encryption */}
                   <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
                      <span className="text-gray-400 font-bold text-xs">Encryption</span>
-                     <span className="bg-[#8B8A6C] text-white px-8 py-1.5 rounded-lg font-bold text-sm">SSL</span>
+                     <span className="bg-[#8B8A6C] text-white px-8 py-1.5 rounded-lg font-bold text-sm">{settings.smtp_encryption || "SSL"}</span>
                   </div>
 
                   {/* UserName */}
                   <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100 flex flex-col items-end gap-4 md:col-span-2">
                      <span className="text-gray-400 font-bold text-xs">UserName</span>
-                     <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">Mail.cdl.eilk.tepldck.site</span>
+                     <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">{settings.smtp_user || "---"}</span>
                   </div>
 
                </div>
