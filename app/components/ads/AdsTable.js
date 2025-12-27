@@ -27,7 +27,7 @@ export default function AdsTable() {
       name: ad.name || "--ss-",
       code: ad.code || "--ddd-",
       dimensions: ad.dimensions || "--eee-",
-      date: ad.created_at ? new Date(ad.created_at).toLocaleDateString('en-GB') : "---",
+      date: ad.created_at ? new Date(ad.created_at).toLocaleDateString('en-GB') : "--fff-",
       media: ad.media || "/icons/Logo.png",
       status: ad.status === 'active' ? "نشط" : "متوقف",
     }));

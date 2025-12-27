@@ -5,7 +5,7 @@ import EditSettingsModal from "@/app/components/settings/EditSettingsModal";
 import { useSettings, useSettingActions } from "@/hooks/useDashboard";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState("system"); // 'visitor' or 'system'
+  const [activeTab, setActiveTab] = useState("visitor"); // 'visitor' or 'system'
   const { data: settingsResponse, isLoading } = useSettings();
   const { updateSettings } = useSettingActions();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
