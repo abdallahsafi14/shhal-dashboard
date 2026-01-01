@@ -34,6 +34,7 @@ export default function CategoriesTable() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleEditClick = (category) => {
     setSelectedCategory(category);
@@ -77,12 +78,12 @@ export default function CategoriesTable() {
         header: "اسم الفئات الفرعية التابعة لها",
         cell: (info) => (
           <div className="flex items-center gap-2 justify-center">
-            <span className="text-[10px] text-gray-500 font-bold border-b border-gray-300">+ 46 أخرى</span>
             {info.getValue().map((name, i) => (
               <span key={i} className={`px-4 py-1 rounded-md text-[10px] font-bold ${i === 0 ? 'bg-[#FFDFE0] text-[#E56A70]' : 'bg-[#EBDFFB] text-[#8659C9]'}`}>
                 {name}
               </span>
             ))}
+            <span className="text-[12px] text-gray-500 font-bold ">+ 46 أخرى</span>
           </div>
         ),
       },
@@ -159,10 +160,58 @@ export default function CategoriesTable() {
              <button className="flex items-center gap-2 bg-[#EAEAEA] border border-transparent px-6 py-2 rounded-lg text-gray-700 text-sm font-medium">
                 <span>فلترة حسب :</span>
              </button>
-             <button className="flex items-center gap-2 bg-white border-b border-gray-200 px-4 py-2 text-gray-600 text-sm hover:text-primary transition-colors">
+             <button 
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
+                className="flex items-center gap-2 bg-white border-b border-gray-200 px-4 py-2 text-gray-600 text-sm hover:text-primary transition-colors"
+            >
                 <span>كل الحالات</span>
                 <ChevronDown className="w-4 h-4" />
-             </button>
+            </button>
+             
+            {/* Filter Popover */}
+            {isFilterOpen && (
+                <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
+                    <div className="space-y-3">
+                            {/* Date Filter */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 mb-1 block">التاريخ حسب التاريخ :</label>
+                                <div className="relative">
+                                <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                                    <span>اختار التاريخ الذي تريده....</span>
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                                </div>
+                            </div>
+
+                            {/* Status Filter */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الحالة :</label>
+                                <div className="relative">
+                                <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                                    <span>نشط / غير مفعل</span>
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                                </div>
+                            </div>
+
+                            {/* Sort Filter */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الترتيب :</label>
+                                <div className="relative">
+                                <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                                    <span>الترتيب من الأحدث للأقدم..</span>
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                                </div>
+                            </div>
+
+                            {/* Apply Filter Button */}
+                            <button className="w-full bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg mt-2 transition-colors">
+                                فلترة
+                            </button>
+                    </div>
+                </div>
+            )}
           </div>
         </div>
 

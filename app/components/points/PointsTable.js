@@ -151,15 +151,27 @@ export default function PointsTable() {
              {/* Custom Filter Popover Trigger */}
              <div className="relative group">
                 <button 
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
                     className="flex items-center gap-2 bg-[#EAEAEA] border border-transparent px-6 py-2 rounded-lg text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors"
                 >
                    <span>فلترة حسب :</span>
                 </button>
 
                 {/* The Filter Popover (No Overlay) */}
+
+             </div>
+
+             <div className="relative group">
+                <button 
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="flex items-center gap-2 bg-white border-b border-gray-200 px-4 py-2 text-gray-600 text-sm hover:text-primary transition-colors"
+                >
+                   <span>كل الحالات</span>
+                   <ChevronDown className="w-4 h-4" />
+                </button>
+
+                {/* The Filter Popover (No Overlay) */}
                 {isFilterOpen && (
-                    <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left">
+                    <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
                         <div className="space-y-3">
                              {/* Date Filter */}
                              <div>
@@ -212,13 +224,6 @@ export default function PointsTable() {
                         </div>
                     </div>
                 )}
-             </div>
-
-             <div className="relative group">
-                <button className="flex items-center gap-2 bg-white border-b border-gray-200 px-4 py-2 text-gray-600 text-sm hover:text-primary transition-colors">
-                   <span>كل الحالات</span>
-                   <ChevronDown className="w-4 h-4" />
-                </button>
              </div>
           </div>
         </div>

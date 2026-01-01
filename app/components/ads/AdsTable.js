@@ -37,6 +37,7 @@ export default function AdsTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const handleEditClick = (row) => {
     setSelectedRow(row);
@@ -169,10 +170,58 @@ export default function AdsTable() {
                 </button>
              </div>
              <div className="relative group">
-                <button className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg text-gray-600 text-sm hover:border-primary transition-colors">
+                <button 
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg text-gray-600 text-sm hover:border-primary transition-colors"
+                >
                    <span>كل الحالات</span>
                    <ChevronDown className="w-4 h-4" />
                 </button>
+
+                {/* Filter Popover */}
+                {isFilterOpen && (
+                    <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
+                        <div className="space-y-3">
+                             {/* Date Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">التاريخ حسب التاريخ :</label>
+                                 <div className="relative">
+                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                                        <span>اختار التاريخ الذي تريده....</span>
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                 </div>
+                             </div>
+
+                             {/* Status Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الحالة :</label>
+                                 <div className="relative">
+                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                                        <span>نشط / متوقف</span>
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                 </div>
+                             </div>
+
+                             {/* Sort Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الترتيب :</label>
+                                 <div className="relative">
+                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                                        <span>الترتيب من الأحدث للأقدم..</span>
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                 </div>
+                             </div>
+
+                             {/* Apply Filter Button */}
+                             <button className="w-full bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg mt-2 transition-colors">
+                                 فلترة
+                             </button>
+                        </div>
+                    </div>
+                )}
              </div>
           </div>
         </div>

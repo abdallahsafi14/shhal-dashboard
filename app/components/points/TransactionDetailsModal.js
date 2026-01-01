@@ -142,15 +142,15 @@ export default function TransactionDetailsModal({ isOpen, onClose, transaction }
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-between pt-2">
-                 {/* Delete Action (Right / Start) - Red Text */}
-                 <button className="text-[#DC2626] font-bold border-b border-[#DC2626] pb-0.5 hover:opacity-80 transition-opacity text-sm">
-                    حذف العملية
-                 </button>
+            <div className="flex items-center justify-start gap-4 pt-2">
 
                  {/* Action Button (Left / End) */}
                  <button className="bg-[#0E3A53] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#082f45] transition-colors text-sm">
                     {isCompleted ? "تعديل العملية" : "قبول العملية"}
+                 </button>
+                 {/* Delete Action (Right / Start) - Red Text */}
+                 <button className="text-[#DC2626] font-bold border-b border-[#DC2626] pb-0.5 hover:opacity-80 transition-opacity text-sm">
+                    حذف العملية
                  </button>
             </div>
 

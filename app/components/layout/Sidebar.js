@@ -15,7 +15,7 @@ import {
 export default function Sidebar({ isOpen, onClose }) {
   const pathname = usePathname();
   const menuItems = [
-    { name: "إدارة الحسابات", icon: Users, href: "/accounts" },
+    { name: "إدارة الحسابات", icon: Users, href: "/" },
     { name: "إدارة الإعلانات", icon: Megaphone, href: "/ads" },
     { name: "إدارة صرف النقاط", icon: Coins, href: "/points" },
     { name: "إدارة المدخلات", icon: FileText, href: "/orders" },
@@ -61,7 +61,11 @@ export default function Sidebar({ isOpen, onClose }) {
         {/* Navigation Links */}
         <nav className="flex-1 py-4 space-y-1 mt-4">
           {menuItems.map((item, index) => {
-            const isActive = pathname.startsWith(item.href);
+            const isActive =
+  item.href === "/"
+    ? pathname === "/"
+    : pathname.startsWith(item.href);
+
             return (
               <Link
                 key={index}
