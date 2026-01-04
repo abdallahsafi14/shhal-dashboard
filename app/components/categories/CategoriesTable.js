@@ -17,7 +17,7 @@ export default function CategoriesTable() {
   const [globalFilter, setGlobalFilter] = useState("");
   const { data: categoriesData, isLoading } = useCategories({ search: globalFilter });
   const { deleteCategory } = useCategoryActions();
-  
+
   const data = useMemo(() => {
     if (!categoriesData?.data) return [];
     return categoriesData.data.map(cat => ({
@@ -64,7 +64,7 @@ export default function CategoriesTable() {
         header: "صورة الفئة",
         cell: (info) => (
           <div className="relative w-10 h-10 mx-auto rounded-lg overflow-hidden bg-gray-50 border border-gray-100 p-1">
-             <Image src={info.getValue()} alt="cat" fill className="object-contain grayscale" />
+            <Image src={info.getValue()} alt="cat" fill className="object-contain grayscale" />
           </div>
         ),
       },
@@ -79,11 +79,18 @@ export default function CategoriesTable() {
         cell: (info) => (
           <div className="flex items-center gap-2 justify-center">
             {info.getValue().map((name, i) => (
-              <span key={i} className={`px-4 py-1 rounded-md text-[10px] font-bold ${i === 0 ? 'bg-[#FFDFE0] text-[#E56A70]' : 'bg-[#EBDFFB] text-[#8659C9]'}`}>
+              <span
+                key={i}
+                className={`px-4 py-1 rounded-md text-[10px] font-bold ${
+                  i === 0
+                    ? "bg-[#FFDFE0] text-[#E56A70]"
+                    : "bg-[#EBDFFB] text-[#8659C9]"
+                }`}
+              >
                 {name}
               </span>
             ))}
-            <span className="text-[12px] text-gray-500 font-bold ">+ 46 أخرى</span>
+            <span className="text-[12px] text-gray-500 font-bold">+ 46 أخرى</span>
           </div>
         ),
       },
@@ -96,29 +103,29 @@ export default function CategoriesTable() {
         id: "status",
         header: "حالة الفئة",
         cell: ({ row }) => {
-            const status = row.original.status;
-            let styles = "bg-[#D1FAE5] text-[#059669] border-[#D1FAE5]";
-            if(status === "غير مفعلة") styles = "bg-[#E0F2FE] text-[#0369A1] border-[#E0F2FE]";
+          const status = row.original.status;
+          let styles = "bg-[#D1FAE5] text-[#059669] border-[#D1FAE5]";
+          if (status === "غير مفعلة") styles = "bg-[#E0F2FE] text-[#0369A1] border-[#E0F2FE]";
 
-            return (
-                 <span className={`px-4 py-1.5 rounded-md text-[10px] font-bold border ${styles} block w-fit mx-auto`}>
-                    {status}
-                 </span>
-            );
-        }
+          return (
+            <span className={`px-4 py-1.5 rounded-md text-[10px] font-bold border ${styles} block w-fit mx-auto`}>
+              {status}
+            </span>
+          );
+        },
       },
       {
         id: "actions",
-        header: "", 
+        header: "",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => handleDeleteClick(row.original.id)}
               className="text-[#0E3A53] hover:text-[#062b40] transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
-            <button 
+            <button
               onClick={() => handleEditClick(row.original)}
               className="text-[#0E3A53] hover:text-[#062b40] transition-colors"
             >
@@ -134,9 +141,7 @@ export default function CategoriesTable() {
   const table = useReactTable({
     data,
     columns,
-    state: {
-      globalFilter,
-    },
+    state: { globalFilter },
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -156,62 +161,64 @@ export default function CategoriesTable() {
               className="w-full bg-white border-b border-gray-200 py-2 px-2 text-right focus:outline-none focus:border-primary text-sm"
             />
           </div>
+
           <div className="flex gap-3 w-full md:w-auto">
-             <button className="flex items-center gap-2 bg-[#EAEAEA] border border-transparent px-6 py-2 rounded-lg text-gray-700 text-sm font-medium">
+            <div className="relative group">
+              <button className="flex items-center gap-2 bg-[#EAEAEA] border border-transparent px-6 py-2 rounded-lg text-gray-700 text-sm font-medium">
                 <span>فلترة حسب :</span>
-             </button>
-             <button 
+              </button>
+            </div>
+
+            {/* ✅ FIXED FILTER WRAPPER */}
+            <div className="relative group">
+              <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className="flex items-center gap-2 bg-white border-b border-gray-200 px-4 py-2 text-gray-600 text-sm hover:text-primary transition-colors"
-            >
+              >
                 <span>كل الحالات</span>
                 <ChevronDown className="w-4 h-4" />
-            </button>
-             
-            {/* Filter Popover */}
-            {isFilterOpen && (
-                <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
-                    <div className="space-y-3">
-                            {/* Date Filter */}
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 mb-1 block">التاريخ حسب التاريخ :</label>
-                                <div className="relative">
-                                <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                    <span>اختار التاريخ الذي تريده....</span>
-                                    <ChevronDown className="w-4 h-4" />
-                                </button>
-                                </div>
-                            </div>
+              </button>
 
-                            {/* Status Filter */}
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الحالة :</label>
-                                <div className="relative">
-                                <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                    <span>نشط / غير مفعل</span>
-                                    <ChevronDown className="w-4 h-4" />
-                                </button>
-                                </div>
-                            </div>
-
-                            {/* Sort Filter */}
-                            <div>
-                                <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الترتيب :</label>
-                                <div className="relative">
-                                <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                    <span>الترتيب من الأحدث للأقدم..</span>
-                                    <ChevronDown className="w-4 h-4" />
-                                </button>
-                                </div>
-                            </div>
-
-                            {/* Apply Filter Button */}
-                            <button className="w-full bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg mt-2 transition-colors">
-                                فلترة
-                            </button>
+              {isFilterOpen && (
+                <div className="absolute top-full left-0 text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        التاريخ حسب التاريخ :
+                      </label>
+                      <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                        <span>اختار التاريخ الذي تريده....</span>
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
                     </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        الفلترة حسب الحالة :
+                      </label>
+                      <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                        <span>نشط / غير مفعل</span>
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        الفلترة حسب الترتيب :
+                      </label>
+                      <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
+                        <span>الترتيب من الأحدث للأقدم..</span>
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <button className="w-full bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg mt-2 transition-colors">
+                      فلترة
+                    </button>
+                  </div>
                 </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -262,9 +269,9 @@ export default function CategoriesTable() {
         </div>
       </div>
 
-      <EditCategoryModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
+      <EditCategoryModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
         category={selectedCategory}
       />
     </>
