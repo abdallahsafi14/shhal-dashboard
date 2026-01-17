@@ -14,7 +14,6 @@ export default function SubCategoriesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header Section */}
       <div className="flex justify-between items-start">
         <div className="text-right">
           <h2 className="text-2xl font-bold text-gray-800 mb-1">
