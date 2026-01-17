@@ -1,51 +1,50 @@
 "use client";
 import React from "react";
 import {
-  Layers,
+  Package,
   CheckCircle2,
   XCircle,
   Clock,
   TrendingUp,
   TrendingDown,
 } from "lucide-react";
-import { useCategoryStats } from "@/hooks/useDashboard";
+import { useProductStats } from "@/hooks/useDashboard";
 
-export default function CategoryStatsCards() {
-  const { data: statsData, isLoading } = useCategoryStats({ days: 5 });
-  const stat = statsData?.data;
-  console.log(stat);
+export default function ProductStatsCards() {
+  const { data: statsData, isLoading } = useProductStats({ days: 5 });
+  const stat = statsData?.data || {};
 
   const stats = [
     {
-      title: "فئات مفعلة",
-      value: stat?.active || 0,
-      change: `+${stat?.active_percentage || 0}%`,
+      title: "منتجات مفعلة",
+      value: stat.active_products || 0,
+      change: `+${stat.active_percentage || 0}%`,
       trend: "up",
       icon: CheckCircle2,
       color: "bg-blue-100 text-blue-500",
     },
     {
-      title: "فئات غير مفعلة",
-      value: stat?.inactive || 0,
-      change: `${stat?.inactive_percentage || 0}%`,
-      trend: stat?.inactive_percentage >= 0 ? "up" : "down",
+      title: "منتجات غير مفعلة",
+      value: stat.inactive_products || 0,
+      change: `${stat.inactive_percentage || 0}%`,
+      trend: stat.inactive_percentage >= 0 ? "up" : "down",
       icon: XCircle,
       color: "bg-pink-100 text-pink-500",
     },
     {
-      title: "فئات جدد",
-      value: stat?.new || 0,
-      change: `+${stat?.new_percentage || 0}%`,
+      title: "منتجات جديدة",
+      value: stat.new_products || 0,
+      change: `+${stat.new_percentage || 0}%`,
       trend: "up",
       icon: Clock,
       color: "bg-orange-100 text-orange-500",
     },
     {
-      title: "اجمالي الفئات",
-      value: stat?.total || 0,
-      change: `+${stat?.total_percentage || 0}%`,
+      title: "إجمالي المنتجات",
+      value: stat.total_products || 0,
+      change: `+${stat.total_percentage || 0}%`,
       trend: "up",
-      icon: Layers,
+      icon: Package,
       color: "bg-gray-100 text-gray-500",
     },
   ];

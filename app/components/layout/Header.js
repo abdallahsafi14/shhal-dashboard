@@ -48,6 +48,8 @@ export default function Header({ onMenuClick }) {
                 alt="Profile"
                 fill
                 className="object-cover p-1"
+                loading="lazy"
+                suppressHydrationWarning
              />
           </div>
         </div>

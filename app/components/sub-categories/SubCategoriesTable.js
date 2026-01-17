@@ -14,46 +14,59 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import Image from "next/image";
-import EditCategoryModal from "./EditCategoryModal";
+import EditSubCategoryModal from "./EditSubCategoryModal";
+import { useSubCategories, useSubCategoriesByCategory, useSubCategoryActions } from "@/hooks/useDashboard";
 
-import { useCategories, useCategoryActions } from "@/hooks/useDashboard";
-
-export default function CategoriesTable() {
+export default function SubCategoriesTable({ selectedCategoryId }) {
   const [globalFilter, setGlobalFilter] = useState("");
-  const { data: categoriesData, isLoading } = useCategories({
+  
+  // Use different endpoint based on whether category is selected
+  const { data: subCategoriesByCategoryData, isLoading: isLoadingByCategory } = useSubCategoriesByCategory(selectedCategoryId);
+  const { data: subCategoriesData, isLoading: isLoadingAll } = useSubCategories({
     search: globalFilter,
   });
-  const { deleteCategory } = useCategoryActions();
+  
+  const subCategoriesDataFinal = selectedCategoryId ? subCategoriesByCategoryData : subCategoriesData;
+  const isLoading = selectedCategoryId ? isLoadingByCategory : isLoadingAll;
+  
+  const { deleteSubCategory } = useSubCategoryActions();
 
   const data = useMemo(() => {
-    if (!categoriesData?.data) return [];
-    return categoriesData.data.map((cat) => ({
-      ...cat,
-      id: cat.id || "---",
-      mainName: cat.name || "---",
-      image: cat.image || "/icons/Logo.png",
-      order: cat.priority || cat.id || 0, // Use ID as fallback since API doesn't have priority
-      subCategories: cat.sub_categories?.map((sc) => sc.name) || [],
-      dateAdded: cat.created_at
-        ? new Date(cat.created_at).toLocaleDateString("en-GB")
+    if (!subCategoriesDataFinal?.data) return [];
+    
+    // Filter by search term if provided
+    let filtered = subCategoriesDataFinal.data;
+    if (globalFilter && !selectedCategoryId) {
+      filtered = filtered.filter(
+        (subCat) =>
+          subCat.name?.toLowerCase().includes(globalFilter.toLowerCase()) ||
+          subCat.category?.name?.toLowerCase().includes(globalFilter.toLowerCase())
+      );
+    }
+    
+    return filtered.map((subCat) => ({
+      ...subCat,
+      id: subCat.id || "---",
+      name: subCat.name || "---",
+      categoryName: subCat.category?.name || "---",
+      dateAdded: subCat.created_at
+        ? new Date(subCat.created_at).toLocaleDateString("en-GB")
         : "---",
-      status: cat.status === "active" ? "فئة مفعلة" : "غير مفعلة",
     }));
-  }, [categoriesData]);
+  }, [subCategoriesDataFinal, globalFilter, selectedCategoryId]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleEditClick = (category) => {
-    setSelectedCategory(category);
+  const handleEditClick = (subCategory) => {
+    setSelectedSubCategory(subCategory);
     setIsEditModalOpen(true);
   };
 
   const handleDeleteClick = (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه الفئة؟")) {
-      deleteCategory(id);
+    if (window.confirm("هل أنت متأكد من حذف هذه الفئة الفرعية؟")) {
+      deleteSubCategory(id);
     }
   };
 
@@ -67,64 +80,18 @@ export default function CategoriesTable() {
         ),
       },
       {
-        accessorKey: "mainName",
+        accessorKey: "categoryName",
         header: "اسم الفئة الرئيسية",
         cell: (info) => (
           <span className="font-bold text-[#0E3A53]">{info.getValue()}</span>
         ),
       },
       {
-        accessorKey: "image",
-        header: "صورة الفئة",
+        accessorKey: "name",
+        header: "اسم الفئة الفرعية",
         cell: (info) => (
-          <div className="relative w-10 h-10 mx-auto rounded-lg overflow-hidden bg-gray-50 border border-gray-100 p-1">
-            <Image
-              src={info.getValue()}
-              alt="cat"
-              fill
-              className="object-contain grayscale"
-            />
-          </div>
+          <span className="font-bold text-gray-800">{info.getValue()}</span>
         ),
-      },
-      {
-        accessorKey: "order",
-        header: "ترتيب الفئة",
-        cell: (info) => (
-          <span className="text-gray-600 font-bold">{info.getValue()}</span>
-        ),
-      },
-      {
-        accessorKey: "subCategories",
-        header: "اسم الفئات الفرعية التابعة لها",
-        cell: (info) => {
-          const subCats = info.getValue();
-          const displayCount = 2; // Show first 2 subcategories
-          const displayed = subCats.slice(0, displayCount);
-          const remaining = subCats.length - displayCount;
-
-          return (
-            <div className="flex items-center gap-2 justify-center">
-              {displayed.map((name, i) => (
-                <span
-                  key={i}
-                  className={`px-4 py-1 rounded-md text-[10px] font-bold ${
-                    i === 0
-                      ? "bg-[#FFDFE0] text-[#E56A70]"
-                      : "bg-[#EBDFFB] text-[#8659C9]"
-                  }`}
-                >
-                  {name}
-                </span>
-              ))}
-              {remaining > 0 && (
-                <span className="text-[12px] text-gray-500 font-bold">
-                  + {remaining} أخرى
-                </span>
-              )}
-            </div>
-          );
-        },
       },
       {
         accessorKey: "dateAdded",
@@ -134,24 +101,6 @@ export default function CategoriesTable() {
             {info.getValue()}
           </span>
         ),
-      },
-      {
-        id: "status",
-        header: "حالة الفئة",
-        cell: ({ row }) => {
-          const status = row.original.status;
-          let styles = "bg-[#D1FAE5] text-[#059669] border-[#D1FAE5]";
-          if (status === "غير مفعلة")
-            styles = "bg-[#E0F2FE] text-[#0369A1] border-[#E0F2FE]";
-
-          return (
-            <span
-              className={`px-4 py-1.5 rounded-md text-[10px] font-bold border ${styles} block w-fit mx-auto`}
-            >
-              {status}
-            </span>
-          );
-        },
       },
       {
         id: "actions",
@@ -180,11 +129,12 @@ export default function CategoriesTable() {
   const table = useReactTable({
     data,
     columns,
-    state: { globalFilter },
+    state: { globalFilter: selectedCategoryId ? "" : globalFilter },
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    enableGlobalFilter: !selectedCategoryId,
   });
 
   return (
@@ -208,7 +158,6 @@ export default function CategoriesTable() {
               </button>
             </div>
 
-            {/* ✅ FIXED FILTER WRAPPER */}
             <div className="relative group">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -233,10 +182,10 @@ export default function CategoriesTable() {
 
                     <div>
                       <label className="text-xs font-bold text-gray-500 mb-1 block">
-                        الفلترة حسب الحالة :
+                        الفلترة حسب الفئة :
                       </label>
                       <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                        <span>نشط / غير مفعل</span>
+                        <span>اختر الفئة...</span>
                         <ChevronDown className="w-4 h-4" />
                       </button>
                     </div>
@@ -298,7 +247,7 @@ export default function CategoriesTable() {
                     colSpan={columns.length}
                     className="py-8 text-center text-gray-500"
                   >
-                    لا توجد فئات متاحة
+                    لا توجد فئات فرعية متاحة
                   </td>
                 </tr>
               ) : (
@@ -364,10 +313,10 @@ export default function CategoriesTable() {
         </div>
       </div>
 
-      <EditCategoryModal
+      <EditSubCategoryModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        category={selectedCategory}
+        subCategory={selectedSubCategory}
       />
     </>
   );
