@@ -1,11 +1,13 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { dashboardService } from "@/lib/dashboard-services";
 import { handleApiError } from "@/lib/service-helpers";
 import { USE_MOCK } from "@/lib/config";
 import * as MOCK from "@/lib/mock-data";
 import { toast } from "sonner";
+import { deleteCookie } from "@/lib/cookie-utils";
 
 // Helper to handle mutations in mock mode
 const useMockMutation = (mutationFn, successMessage, queryKeyToInvalidate) => {
@@ -333,5 +335,71 @@ export const useStats = () => {
     queryKey: ["stats"],
     queryFn: () =>
       USE_MOCK ? Promise.resolve(MOCK.MOCK_STATS) : dashboardService.getStats(),
+  });
+};
+
+// --- Admin Profile Hooks ---
+export const useAdminProfile = () => {
+  return useQuery({
+    queryKey: ["adminProfile"],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({
+            data: {
+              id: 1,
+              first_name: "Admin",
+              last_name: "User",
+              email: "admin@shihal.test",
+              role: "admin",
+              status: "active",
+              last_login: new Date().toISOString(),
+            },
+          })
+        : dashboardService.getAdminProfile(),
+  });
+};
+
+export const useAdminProfileActions = () => {
+  const updateMutation = useMockMutation(
+    dashboardService.updateAdminProfile,
+    "تم تحديث الملف الشخصي بنجاح",
+    "adminProfile"
+  );
+
+  return {
+    updateProfile: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+  };
+};
+
+// --- Logout Hook ---
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: USE_MOCK
+      ? async () => ({ success: true })
+      : dashboardService.logout,
+    onSuccess: () => {
+      // Clear token from both localStorage and cookie, then redirect
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("shhal_admin_token");
+        deleteCookie("shhal_admin_token");
+      }
+      queryClient.clear();
+      toast.success("تم تسجيل الخروج بنجاح");
+      router.push("/login");
+    },
+    onError: (error) => {
+      // Even if API call fails, clear local storage, cookie and redirect
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("shhal_admin_token");
+        deleteCookie("shhal_admin_token");
+      }
+      queryClient.clear();
+      router.push("/login");
+      handleApiError(error, "حدث خطأ أثناء تسجيل الخروج");
+    },
   });
 };

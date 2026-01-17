@@ -4,6 +4,7 @@ import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
 import { useRouter } from "next/navigation";
 import { USE_MOCK } from "@/lib/config";
+import { setCookie, getCookie } from "@/lib/cookie-utils";
 
 export default function DashboardLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -22,6 +23,13 @@ export default function DashboardLayout({ children }) {
     if (USE_MOCK) return; // Skip auth check in mock mode
 
     const token = localStorage.getItem("shhal_admin_token");
+    
+    // Sync token to cookie if it exists in localStorage but not in cookie
+    // This helps with users who were logged in before we added cookie support
+    if (token && !getCookie("shhal_admin_token")) {
+      setCookie("shhal_admin_token", token, 7);
+    }
+    
     if (!token) {
       router.push("/login");
     }

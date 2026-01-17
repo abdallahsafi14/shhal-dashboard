@@ -1,14 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login, isLoggingIn } = useAuth();
+  const router = useRouter();
+
+  // Check for unauthorized parameter and show message
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const unauthorized = urlParams.get("unauthorized");
+      if (unauthorized === "true") {
+        toast.warning("يجب عليك تسجيل الدخول للوصول لهذه الصفحة");
+        // Clean up the URL by removing the parameter
+        urlParams.delete("unauthorized");
+        const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : "");
+        router.replace(newUrl);
+      }
+    }
+  }, [router]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

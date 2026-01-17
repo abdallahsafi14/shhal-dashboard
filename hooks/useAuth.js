@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { USE_MOCK } from "@/lib/config";
 import { MOCK_PROFILE } from "@/lib/mock-data";
+import { setCookie, deleteCookie } from "@/lib/cookie-utils";
 
 export const useAuth = () => {
   const router = useRouter();
@@ -16,10 +17,10 @@ export const useAuth = () => {
       ? async () => ({ token: "mock-token" })
       : authService.login,
     onSuccess: (data) => {
-      localStorage.setItem(
-        "shhal_admin_token",
-        data.data?.token || data.token || data.access_token
-      );
+      const token = data.data?.token || data.token || data.access_token;
+      // Store in both localStorage (for client-side) and cookie (for middleware)
+      localStorage.setItem("shhal_admin_token", token);
+      setCookie("shhal_admin_token", token, 7); // 7 days expiry
       toast.success(data.message || "تم تسجيل الدخول بنجاح");
       router.push("/");
       queryClient.invalidateQueries(["profile"]);
@@ -69,6 +70,7 @@ export const useAuth = () => {
     isProfileLoading,
     logout: () => {
       localStorage.removeItem("shhal_admin_token");
+      deleteCookie("shhal_admin_token");
       router.push("/login");
     },
   };
