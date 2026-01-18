@@ -3,7 +3,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, Megaphone, Coins, FileText, Layers, X } from "lucide-react";
+import { Users, Megaphone, Coins, FileText, Layers, Store, MapPin, X } from "lucide-react";
 
 export default function Sidebar({ isOpen, onClose }) {
   const pathname = usePathname();
@@ -14,6 +14,8 @@ export default function Sidebar({ isOpen, onClose }) {
     { name: "إدارة المدخلات", icon: FileText, href: "/orders" },
     { name: "إدارة الفئات", icon: Layers, href: "/categories" },
     { name: "إدارة الفئات الفرعية", icon: Layers, href: "/sub-categories" },
+    { name: "إدارة المتاجر", icon: Store, href: "/stores" },
+    { name: "إدارة الفروع", icon: MapPin, href: "/branches" },
   ];
 
   return (

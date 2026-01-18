@@ -18,7 +18,9 @@ export function middleware(request) {
     pathname.startsWith("/sub-categories") ||
     pathname.startsWith("/orders") ||
     pathname.startsWith("/points") ||
-    pathname.startsWith("/products");
+    pathname.startsWith("/products") ||
+    pathname.startsWith("/stores") ||
+    pathname.startsWith("/branches");
 
   // If it's a public route, allow access
   if (isPublicRoute) {

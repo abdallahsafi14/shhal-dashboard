@@ -403,3 +403,90 @@ export const useLogout = () => {
     },
   });
 };
+
+// --- Stores Hooks ---
+export const useStores = (params) => {
+  return useQuery({
+    queryKey: ["stores", params],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({ data: [] })
+        : dashboardService.getStores(params),
+  });
+};
+
+export const useStoreActions = () => {
+  const createMutation = useMockMutation(
+    dashboardService.createStore,
+    "تم إضافة المتجر بنجاح",
+    "stores"
+  );
+  const updateMutation = useMockMutation(
+    ({ id, data }) => dashboardService.updateStore(id, data),
+    "تم تحديث المتجر بنجاح",
+    "stores"
+  );
+  const deleteMutation = useMockMutation(
+    dashboardService.deleteStore,
+    "تم حذف المتجر بنجاح",
+    "stores"
+  );
+
+  return {
+    createStore: createMutation.mutate,
+    isCreating: createMutation.isPending,
+    updateStore: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+    deleteStore: deleteMutation.mutate,
+    isDeleting: deleteMutation.isPending,
+  };
+};
+
+// --- Branches Hooks ---
+export const useBranches = (params) => {
+  return useQuery({
+    queryKey: ["branches", params],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({ data: [] })
+        : dashboardService.getBranches(params),
+  });
+};
+
+export const useBranchesByStore = (storeId) => {
+  return useQuery({
+    queryKey: ["branchesByStore", storeId],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({ data: [] })
+        : dashboardService.getBranchesByStore(storeId),
+    enabled: !!storeId,
+  });
+};
+
+export const useBranchActions = () => {
+  const createMutation = useMockMutation(
+    dashboardService.createBranch,
+    "تم إضافة الفرع بنجاح",
+    "branches"
+  );
+  const updateMutation = useMockMutation(
+    ({ id, data }) => dashboardService.updateBranch(id, data),
+    "تم تحديث الفرع بنجاح",
+    "branches"
+  );
+  const deleteMutation = useMockMutation(
+    dashboardService.deleteBranch,
+    "تم حذف الفرع بنجاح",
+    "branches"
+  );
+
+  return {
+    createBranch: createMutation.mutate,
+    isCreating: createMutation.isPending,
+    updateBranch: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+    deleteBranch: deleteMutation.mutate,
+    isDeleting: deleteMutation.isPending,
+  };
+};
