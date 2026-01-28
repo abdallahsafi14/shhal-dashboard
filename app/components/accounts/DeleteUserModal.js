@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { X, User } from "lucide-react";
 
-export default function DeleteUserModal({ isOpen, onClose, onConfirm }) {
+export default function DeleteUserModal({ isOpen, onClose, onConfirm, user }) {
   const modalRef = useRef(null);
 
   // Close modal when clicking outside
@@ -46,9 +46,14 @@ export default function DeleteUserModal({ isOpen, onClose, onConfirm }) {
             </div>
 
             {/* Title */}
-            <h3 className="text-xl font-bold text-gray-800 mb-8">
-                هل أنت متأكد من رغبتك في حذف اسم هذا العضو؟
+            <h3 className="text-xl font-bold text-gray-800 mb-2">
+                هل أنت متأكد من رغبتك في حذف هذا العضو؟
             </h3>
+            {user && (
+              <p className="text-gray-600 mb-8">
+                {user.first_name} {user.last_name}
+              </p>
+            )}
 
              {/* Footer Buttons */}
              <div className="flex items-center justify-center gap-4 w-full px-4">

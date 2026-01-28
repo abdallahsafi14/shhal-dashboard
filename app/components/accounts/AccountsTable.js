@@ -11,6 +11,7 @@ import { Search, ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "l
 import Image from "next/image";
 import EditUserModal from "./EditUserModal";
 import DeleteUserModal from "./DeleteUserModal";
+import UserDetailsModal from "./UserDetailsModal";
 
 import { useUsers, useUserActions } from "@/hooks/useDashboard";
 
@@ -20,26 +21,47 @@ export default function AccountsTable() {
   const { deleteUser } = useUserActions();
   
   const data = useMemo(() => {
-    if (!usersData?.data) return [];
-    return usersData.data.map(user => ({
+    // Handle paginated response structure: data.data.data
+    const users = usersData?.data?.data || usersData?.data || [];
+    return users.map(user => ({
       ...user,
       id: user.id || "---",
-      name: user.name || "---",
+      name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || "---",
       avatar: user.avatar || "/icons/Logo.png",
       phone: user.phone || "---",
       email: user.email || "---",
       date: user.created_at ? new Date(user.created_at).toLocaleDateString('en-GB') : "---",
-      status: user.status === 'active' ? "نشط" : "متوقف",
+      // Keep original status for API, add displayStatus for UI
+      displayStatus: user.status === 'active' ? "نشط" : "متوقف",
     }));
   }, [usersData]);
 
   /* Modal State */
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleEditClick = (row) => {
+  const handleRowClick = (row) => {
+    setSelectedUserId(row.original.id);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleEditClick = () => {
+    if (selectedUserId) {
+      const user = data.find(u => u.id === selectedUserId);
+      if (user) {
+        setSelectedRow(user);
+        setIsDetailsModalOpen(false);
+        setIsEditModalOpen(true);
+      }
+    }
+  };
+
+  const handleEditFromTable = (row, e) => {
+    e.stopPropagation();
     setSelectedRow(row);
     setIsEditModalOpen(true);
   };
@@ -51,7 +73,8 @@ export default function AccountsTable() {
     }
   };
 
-  const handleDeleteClick = (row) => {
+  const handleDeleteClick = (row, e) => {
+      e.stopPropagation();
       setSelectedRow(row);
       setIsDeleteModalOpen(true);
   };
@@ -91,7 +114,7 @@ export default function AccountsTable() {
         cell: (info) => <span className="text-gray-600">{info.getValue()}</span>,
       },
       {
-        accessorKey: "status",
+        accessorKey: "displayStatus",
         header: "الحالة",
         cell: (info) => {
           const status = info.getValue();
@@ -115,13 +138,13 @@ export default function AccountsTable() {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <button 
-                onClick={() => handleDeleteClick(row.original)}
+                onClick={(e) => handleDeleteClick(row.original, e)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button 
-                onClick={() => handleEditClick(row.original)}
+                onClick={(e) => handleEditFromTable(row.original, e)}
                 className="text-gray-400 hover:text-blue-500 transition-colors"
             >
               <Edit2 className="w-4 h-4" />
@@ -245,46 +268,111 @@ export default function AccountsTable() {
               ))}
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-4 px-4 text-sm whitespace-nowrap">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+              {isLoading ? (
+                <tr>
+                  <td colSpan={columns.length} className="py-8 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B8A6C]"></div>
+                      <span className="mr-2 text-gray-500">
+                        جاري التحميل...
+                      </span>
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              ) : table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="py-8 text-center text-gray-500"
+                  >
+                    لا يوجد مستخدمون متاحون
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr 
+                    key={row.id} 
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => handleRowClick(row)}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="py-4 px-4 text-sm whitespace-nowrap">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination Section */}
         <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-50">
-            <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
-                <span className="">  460 of 10 1 - 10 </span>
+          <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
+            <span>
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}{" "}
+              -{" "}
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) *
+                  table.getState().pagination.pageSize,
+                data.length
+              )}{" "}
+              من {data.length}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[#8B8A6C]">رقم السطر :</span>
+            <div className="flex items-center gap-2 bg-[#8B8A6C] text-white px-2 py-1 rounded">
+              <span>{table.getState().pagination.pageSize}</span>
+              <ChevronDown className="w-3 h-3" />
             </div>
-            <div className="flex items-center gap-2">
-                <span className="text-[#8B8A6C]">رقم السطر :</span>
-                <div className="flex items-center gap-2 bg-[#8B8A6C] text-white px-2 py-1 rounded">
-                  <span>10</span>
-                  <ChevronDown className="w-3 h-3" />
-                </div>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity">
-                    <ChevronRight className="w-4 h-4" />
-                </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity">
-                    <ChevronLeft className="w-4 h-4" />
-                </button>
-            </div>
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
       
       {/* Modals */}
-      <EditUserModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+      <UserDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedUserId(null);
+        }}
+        userId={selectedUserId}
+        onEditClick={handleEditClick}
+      />
+      <EditUserModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedRow(null);
+        }}
+        user={selectedRow}
+      />
       <DeleteUserModal 
         isOpen={isDeleteModalOpen} 
-        onClose={() => setIsDeleteModalOpen(false)} 
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedRow(null);
+        }}
         onConfirm={handleDeleteConfirm}
+        user={selectedRow}
       />
     </>
   );

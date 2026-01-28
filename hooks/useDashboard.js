@@ -34,6 +34,17 @@ export const useUsers = (params) => {
   });
 };
 
+export const useUserById = (id) => {
+  return useQuery({
+    queryKey: ["user", id],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({ data: null })
+        : dashboardService.getUserById(id),
+    enabled: !!id,
+  });
+};
+
 export const useUserActions = () => {
   const createMutation = useMockMutation(
     dashboardService.createUser,
@@ -69,6 +80,34 @@ export const useAds = (params) => {
       USE_MOCK
         ? Promise.resolve(MOCK.MOCK_ADS)
         : dashboardService.getAds(params),
+  });
+};
+
+export const useAdDetails = (id) => {
+  return useQuery({
+    queryKey: ["ad", id],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({ data: MOCK.MOCK_ADS.data[0] })
+        : dashboardService.getAdById(id),
+    enabled: !!id,
+  });
+};
+
+export const useAdStats = () => {
+  return useQuery({
+    queryKey: ["adStats"],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({
+            data: {
+              total_advertisements: 50,
+              active_advertisements: 5,
+              suspended_advertisements: 15,
+              new_advertisements: 30,
+            },
+          })
+        : dashboardService.getAdStats(),
   });
 };
 
@@ -269,15 +308,22 @@ export const useOrderDetails = (id) => {
 };
 
 export const useOrderActions = () => {
-  const updateStatusMutation = useMockMutation(
-    ({ id, status }) => dashboardService.updateOrderStatus(id, status),
-    "تم تحديث حالة الطلب بنجاح",
+  const approveMutation = useMockMutation(
+    (id) => dashboardService.approveOrder(id),
+    "تم قبول الطلب بنجاح",
+    "orders"
+  );
+  const rejectMutation = useMockMutation(
+    ({ id, reason }) => dashboardService.rejectOrder(id, reason),
+    "تم رفض الطلب بنجاح",
     "orders"
   );
 
   return {
-    updateStatus: updateStatusMutation.mutate,
-    isUpdating: updateStatusMutation.isPending,
+    approveOrder: approveMutation.mutate,
+    isApproving: approveMutation.isPending,
+    rejectOrder: rejectMutation.mutate,
+    isRejecting: rejectMutation.isPending,
   };
 };
 
@@ -290,6 +336,38 @@ export const usePoints = (params) => {
         ? Promise.resolve(MOCK.MOCK_POINTS)
         : dashboardService.getPoints(params),
   });
+};
+
+export const usePointsRedemptionSettings = () => {
+  return useQuery({
+    queryKey: ["pointsRedemptionSettings"],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({
+            data: {
+              id: 1,
+              field_value: 1,
+              multiplier: "X1",
+              is_enabled: true,
+              point_value: 0.0025,
+              min_points_to_redeem: 1000,
+            },
+          })
+        : dashboardService.getPointsRedemptionSettings(),
+  });
+};
+
+export const usePointsRedemptionSettingsActions = () => {
+  const updateMutation = useMockMutation(
+    dashboardService.updatePointsRedemptionSettings,
+    "تم تحديث إعدادات صرف النقاط بنجاح",
+    "pointsRedemptionSettings"
+  );
+
+  return {
+    updateSettings: updateMutation.mutate,
+    isUpdating: updateMutation.isPending,
+  };
 };
 
 export const usePointActions = () => {

@@ -11,6 +11,7 @@ import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-re
 import Image from "next/image";
 import EditAdModal from "./EditAdModal";
 import DeleteAdModal from "./DeleteAdModal";
+import AdDetailsModal from "./AdDetailsModal";
 
 import { useAds, useAdActions } from "@/hooks/useDashboard";
 
@@ -20,22 +21,25 @@ export default function AdsTable() {
   const { deleteAd } = useAdActions();
   
   const data = useMemo(() => {
-    if (!adsData?.data) return [];
-    return adsData.data.map(ad => ({
+    // Handle new API structure: data.data.data (array) and data.data.pagination
+    const ads = adsData?.data?.data || adsData?.data || [];
+    return ads.map(ad => ({
       ...ad,
-      id: ad.id || "--aaaa-",
-      name: ad.name || "--ss-",
-      code: ad.code || "--ddd-",
-      dimensions: ad.dimensions || "--eee-",
-      date: ad.created_at ? new Date(ad.created_at).toLocaleDateString('en-GB') : "--fff-",
-      media: ad.media || "/icons/Logo.png",
+      id: ad.id || "---",
+      name: ad.name || "---",
+      code: ad.code || "---",
+      dimensions: ad.dimensions || "---",
+      date: ad.created_at ? new Date(ad.created_at).toLocaleDateString('en-GB') : "---",
+      media: ad.media_url || ad.media || "/icons/Logo.png",
       status: ad.status === 'active' ? "نشط" : "متوقف",
+      statusValue: ad.status, // Keep original status value (active or suspended)
     }));
   }, [adsData]);
 
   // Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -115,15 +119,21 @@ export default function AdsTable() {
         id: "actions",
         header: "", 
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <button 
-                onClick={() => handleDeleteClick(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteClick(row.original);
+                }}
                 className="text-gray-400 hover:text-red-500 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
             <button 
-                onClick={() => handleEditClick(row.original)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditClick(row.original);
+                }}
                 className="text-gray-400 hover:text-blue-500 transition-colors"
             >
               <Edit2 className="w-4 h-4" />
@@ -247,15 +257,49 @@ export default function AdsTable() {
               ))}
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="py-4 px-4 text-sm whitespace-nowrap">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+              {isLoading ? (
+                <tr>
+                  <td colSpan={columns.length} className="py-8 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B8A6C]"></div>
+                      <span className="mr-2 text-gray-500">جاري التحميل...</span>
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              ) : table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="py-8 text-center text-gray-500">
+                    لا توجد إعلانات متاحة
+                  </td>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr 
+                    key={row.id} 
+                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      // Don't open modal if clicking on action buttons
+                      if (e.target.closest('button')) {
+                        return;
+                      }
+                      const adId = row.original.id;
+                      if (adId && adId !== "---") {
+                        setSelectedRow(row.original);
+                        setIsDetailsModalOpen(true);
+                      }
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td 
+                        key={cell.id} 
+                        className="py-4 px-4 text-sm whitespace-nowrap"
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -263,18 +307,37 @@ export default function AdsTable() {
         {/* Pagination Section */}
         <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-50">
             <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
-                <span className="">  460 of 10 1 - 10 </span>
+                <span>
+                  {table.getState().pagination.pageIndex *
+                    table.getState().pagination.pageSize +
+                    1}{" "}
+                  -{" "}
+                  {Math.min(
+                    (table.getState().pagination.pageIndex + 1) *
+                      table.getState().pagination.pageSize,
+                    data.length
+                  )}{" "}
+                  من {data.length}
+                </span>
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-[#8B8A6C]">رقم السطر :</span>
                 <div className="flex items-center gap-2 bg-[#8B8A6C] text-white px-2 py-1 rounded">
-                  <span>10</span>
+                  <span>{table.getState().pagination.pageSize}</span>
                   <ChevronDown className="w-3 h-3" />
                 </div>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity">
+                <button
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     <ChevronRight className="w-4 h-4" />
                 </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity">
+                <button
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     <ChevronLeft className="w-4 h-4" />
                 </button>
             </div>
@@ -282,10 +345,32 @@ export default function AdsTable() {
       </div>
       
       {/* Modals */}
-      <EditAdModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} />
+      <AdDetailsModal 
+        isOpen={isDetailsModalOpen} 
+        onClose={() => {
+          setIsDetailsModalOpen(false);
+          setSelectedRow(null);
+        }}
+        adId={selectedRow?.id}
+        onEdit={() => {
+          setIsDetailsModalOpen(false);
+          setIsEditModalOpen(true);
+        }}
+      />
+      <EditAdModal 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedRow(null);
+        }}
+        ad={selectedRow}
+      />
       <DeleteAdModal 
         isOpen={isDeleteModalOpen} 
-        onClose={() => setIsDeleteModalOpen(false)} 
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setSelectedRow(null);
+        }}
         onConfirm={handleDeleteConfirm}
       />
     </>

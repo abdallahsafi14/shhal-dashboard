@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EditSettingsModal from "@/app/components/settings/EditSettingsModal";
 
 import { useSettings, useSettingActions } from "@/hooks/useDashboard";
@@ -11,12 +11,19 @@ export default function SettingsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const settings = settingsResponse?.data || {};
-  const [isVisitorOpen, setIsVisitorOpen] = useState(settings.visitor_mode || false);
+  const [isVisitorOpen, setIsVisitorOpen] = useState(settings.is_public ?? true);
+
+  // Update state when settings load
+  useEffect(() => {
+    if (settings.is_public !== undefined) {
+      setIsVisitorOpen(settings.is_public);
+    }
+  }, [settings.is_public]);
 
   const handleVisitorToggle = () => {
     const newVal = !isVisitorOpen;
     setIsVisitorOpen(newVal);
-    updateSettings({ visitor_mode: newVal });
+    updateSettings({ is_public: newVal });
   };
 
   return (

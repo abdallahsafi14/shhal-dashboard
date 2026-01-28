@@ -1,39 +1,43 @@
 "use client";
 import React from "react";
 import { Megaphone, Layers, PauseCircle, Activity, TrendingUp, TrendingDown } from "lucide-react";
+import { useAdStats } from "@/hooks/useDashboard";
 
 export default function AdsStatsCards() {
+  const { data: statsData, isLoading } = useAdStats();
+  const statsInfo = statsData?.data || {};
+
   const stats = [
     {
       title: "اعلانات نشطة",
-      value: "5",
+      value: statsInfo.active_advertisements || 0,
       change: "+6.08%",
       trend: "up",
-      icon: Activity, // Placeholder for Active
+      icon: Activity,
       color: "bg-blue-100 text-blue-500",
     },
     {
       title: "اعلانات متوقفة",
-      value: "15",
+      value: statsInfo.suspended_advertisements || 0,
       change: "+6.08%",
       trend: "down",
-      icon: PauseCircle, // Placeholder for Paused
+      icon: PauseCircle,
       color: "bg-pink-100 text-pink-500",
     },
     {
       title: "اعلانات جدد",
-      value: "30",
+      value: statsInfo.new_advertisements || 0,
       change: "+6.08%",
       trend: "up",
-      icon: Megaphone, // Placeholder for New
+      icon: Megaphone,
       color: "bg-orange-100 text-orange-500",
     },
     {
       title: "اجمالي الاعلانات",
-      value: "50",
+      value: statsInfo.total_advertisements || 0,
       change: "+6.08%",
       trend: "up",
-      icon: Layers, // Placeholder for Total
+      icon: Layers,
       color: "bg-gray-100 text-gray-500",
     },
   ];
@@ -56,7 +60,9 @@ export default function AdsStatsCards() {
           </div>
 
           <div className="text-right mt-2">
-            <h3 className="text-3xl font-bold text-gray-800 mb-1">{stat.value}</h3>
+            <h3 className="text-3xl font-bold text-gray-800 mb-1">
+              {isLoading ? "..." : stat.value}
+            </h3>
             <p className="text-sm text-gray-500">{stat.title}</p>
           </div>
         </div>

@@ -25,20 +25,22 @@ export default function OrderDetailsPage({ params }) {
   const id = resolvedParams.id;
   
   const { data: orderResponse, isLoading } = useOrderDetails(id);
-  const { updateStatus, isUpdating } = useOrderActions();
+  const { approveOrder, rejectOrder, isApproving, isRejecting } = useOrderActions();
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
 
   const order = orderResponse?.data;
+  const productData = order?.product_data || {};
+  const isUpdating = isApproving || isRejecting;
 
   if (isLoading) return <div className="flex items-center justify-center min-h-[400px]">جاري التحميل...</div>;
   if (!order) return <div className="flex items-center justify-center min-h-[400px]">الطلب غير موجود</div>;
 
   const handleAccept = () => {
-    updateStatus({ id, status: 'accepted' });
+    approveOrder(id);
   };
 
   const handleRejectConfirm = (reason) => {
-    updateStatus({ id, status: 'rejected', reason });
+    rejectOrder({ id, reason });
     setIsRejectModalOpen(false);
   };
   return (
@@ -65,7 +67,7 @@ export default function OrderDetailsPage({ params }) {
               <div className="flex items-center gap-2 text-secondary font-medium">
                   <Package className="w-4 h-4" />
                   <span>نوع الطلب :</span>
-                   <span className="text-[#8B8A6C] font-bold">{order.type === 'update' ? 'تحديث منتج' : 'اضافة منتج جديد'}</span>
+                   <span className="text-[#8B8A6C] font-bold">{order.type || '---'}</span>
                </div>
                <div className="flex items-center gap-2 text-secondary font-medium">
                    <CircleDollarSign className="w-4 h-4" />
@@ -89,7 +91,7 @@ export default function OrderDetailsPage({ params }) {
 
          {/* Product Title */}
          <div className="text-right">
-             <h1 className="text-2xl font-bold text-gray-800">{order.product?.name || "---"}</h1>
+             <h1 className="text-2xl font-bold text-gray-800">{order.product_name || productData.name_ar || "---"}</h1>
          </div>
 
          {/* Description */}
@@ -99,133 +101,97 @@ export default function OrderDetailsPage({ params }) {
                  <Tag className="w-4 h-4 text-[#8B8A6C]" />
              </h3>
              <p className="text-gray-400 text-sm leading-relaxed max-w-4xl mr-auto">
-                 {order.product?.description || "لا يوجد وصف"}
+                 {productData.description || "لا يوجد وصف"}
              </p>
          </div>
 
-        {/* Meta Stats: Rating, Category, Views */}
+        {/* Meta Stats: Category, Barcode */}
       <div className="flex items-center justify-between">
           <div className="flex  items-center justify-center gap-16 py-4 border-t border-gray-200 border-b border-gray-200">
             <div className="flex items-center gap-2 text-gray-600">
                 <span className="bg-gray-100 p-1 rounded-md"><Package className="w-4 h-4 text-gray-400" /></span>
-                <span className="font-bold">فئة {order.category?.name || "---"}</span>
+                <span className="font-bold">فئة {order.category || "---"}</span>
             </div>
-            <div className="flex items-center gap-2 text-gray-600">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="font-bold">{order.product?.rating || 0}</span>
-            </div>
-            <div className="flex items-center gap-2 text-gray-600">
-                <Eye className="w-4 h-4 text-gray-400" />
-                <span className="font-bold">{order.product?.views || 0}</span>
-            </div>
+            {productData.barcode && (
+              <div className="flex items-center gap-2 text-gray-600">
+                  <Tag className="w-4 h-4 text-gray-400" />
+                  <span className="font-bold">باركود: {productData.barcode}</span>
+              </div>
+            )}
         </div>
 
         {/* Variants */}
-        <div className="flex flex-wrap flex-col items-start justify-end gap-3">
-             <h3 className="flex items-center gap-2 font-bold text-gray-700 ml-4">
-                <Clock className="w-4 h-4 text-[#8B8A6C]" />
-                <span>متغيرات المنتج :</span>
-            </h3>
-           <div className="flex items-center gap-2">
-              <div className="bg-[#B5B499] text-white px-6 py-1.5 rounded-lg text-sm font-bold">
-                 العمر : 15 - 24 سنة
+        {productData.variants && productData.variants.length > 0 && (
+          <div className="flex flex-wrap flex-col items-start justify-end gap-3">
+               <h3 className="flex items-center gap-2 font-bold text-gray-700 ml-4">
+                  <Clock className="w-4 h-4 text-[#8B8A6C]" />
+                  <span>متغيرات المنتج :</span>
+              </h3>
+             <div className="flex items-center gap-2">
+                {productData.variants.map((variant, i) => (
+                  <div key={i} className="bg-[#B5B499] text-white px-6 py-1.5 rounded-lg text-sm font-bold">
+                    {variant.key} : {variant.value}
+                  </div>
+                ))}
              </div>
-             <div className="bg-[#B5B499] text-white px-6 py-1.5 rounded-lg text-sm font-bold">
-                 المقاس : XS
-             </div>
-             <div className="bg-[#B5B499] text-white px-6 py-1.5 rounded-lg text-sm font-bold">
-                 اللون : أسود
-             </div>
-           </div>
-        </div>
+          </div>
+        )}
       </div>
 
-        {/* Stores */}
-        <div className="space-y-4 text-right bg-[#FDFBF7] rounded-3xl p-8 border border-gray-100">
-            <h3 className="flex items-center justify-start gap-2 font-bold text-gray-700">
-                <Store className="w-4 h-4 text-[#8B8A6C]" />
-                <span>المتاجر المتاحة :</span>
-            </h3>
-            <div className="flex flex-wrap justify-start gap-4">
-                {order.stores?.map((store, i) => (
-                    <span key={i} className="text-gray-500 text-sm font-medium">{store.name}</span>
-                )) || <span className="text-gray-400 text-sm">لا توجد متاجر</span>}
-            </div>
-        </div>
+        {/* Price */}
+        {productData.price && (
+          <div className="space-y-4 text-right bg-[#FDFBF7] rounded-3xl p-8 border border-gray-100">
+              <h3 className="flex items-center justify-start gap-2 font-bold text-gray-700">
+                  <CircleDollarSign className="w-4 h-4 text-[#8B8A6C]" />
+                  <span>السعر :</span>
+              </h3>
+              <div className="text-2xl font-bold text-[#0E3A53]">
+                  {productData.price} $
+              </div>
+          </div>
+        )}
 
        
 
-        {/* Pricing Tables */}
-        <div className=" gap-8 pt-8">
-            {/* Suggested Prices */}
-            <div className="bg-[#FDFBF7] rounded-3xl p-8 border border-gray-100">
-                <h3 className="flex items-center justify-start  gap-2 font-bold text-[#0E3A53] mb-8 text-xl">
-                    <Store className="w-6 h-6" />
-                    <span>الاسعار المقترحة :</span>
-                </h3>
-                <div className="space-y-6 flex  justify-between items-center">
-                    {order.suggested_prices?.map((item, i) => (
-                        <div key={i} className="flex items-center justify-between gap-8">
-                            {/* Price (Far Left) */}
-                              <div className="text-right space-y-1">
-                                 <div className="flex items-center justify-start gap-2 text-secondary font-bold">
-                                     <Store className="w-4 h-4" />
-                                     <span>{item.store_name}</span>
-                                 </div>
-                                 <div className="flex items-center justify-start gap-2 text-secondary text-sm">
-                                     <MapPin className="w-3.5 h-3.5" />
-                                     <span className="font-medium">اللاذقية سوق التجار مقابل مقهى الملكي</span>
-                                 </div>
-                             </div>
+        {/* User Info */}
+        {order.user && (
+          <div className="bg-[#FDFBF7] rounded-3xl p-8 border border-gray-100">
+              <h3 className="flex items-center justify-start gap-2 font-bold text-gray-700 mb-4">
+                  <Package className="w-4 h-4 text-[#8B8A6C]" />
+                  <span>معلومات المستخدم :</span>
+              </h3>
+              <div className="space-y-2 text-right">
+                  <p className="text-gray-600"><span className="font-bold">الاسم:</span> {order.user.name || "---"}</p>
+                  <p className="text-gray-600"><span className="font-bold">البريد الإلكتروني:</span> {order.user.email || "---"}</p>
+              </div>
+          </div>
+        )}
 
-                             {/* Shop Info (Right) */}
-                              <div className="text-lg font-bold text-[#0E3A53]">
-                                 ${item.price}
-                             </div>
-                           
-                        </div>
-                    )) || <p className="text-gray-400 text-sm text-center">لا توجد أسعار مقترحة</p>}
-                    {order.suggested_prices?.map((item, i) => (
-                        <div key={i} className="flex items-center justify-between  gap-8">
-                            {/* Price (Far Left) */}
-                             <div className="text-right space-y-1">
-                                 <div className="flex items-center justify-start gap-2 text-secondary font-bold">
-                                     <Store className="w-4 h-4" />
-                                     <span>{item.store_name}</span>
-                                 </div>
-                                 <div className="flex items-center justify-start gap-2 text-secondary text-sm">
-                                     <MapPin className="w-3.5 h-3.5" />
-                                     <span className="font-medium">اللاذقية سوق التجار مقابل مقهى الملكي</span>
-                                 </div>
-                             </div>
-
-                             {/* Shop Info (Right) */}
-                              <div className="text-lg font-bold text-[#0E3A53]">
-                                 ${item.price}
-                             </div>
-                            
-                        </div>
-                    )) || <p className="text-gray-400 text-sm text-center">لا توجد أسعار مقترحة</p>}
-                </div>
-            </div>
-
-            {/* Previous Prices */}
-          
-        </div>
+        {/* Rejection Reason */}
+        {order.rejection_reason && (
+          <div className="bg-red-50 rounded-3xl p-8 border border-red-200">
+              <h3 className="flex items-center justify-start gap-2 font-bold text-red-700 mb-4">
+                  <span>سبب الرفض :</span>
+              </h3>
+              <p className="text-red-600 text-right">{order.rejection_reason}</p>
+          </div>
+        )}
          {/* Product Images */}
-        <div className="space-y-4 text-right">
-            <h3 className="flex items-center justify-start gap-2 font-bold text-gray-700">
-                <span>صور المنتج :</span>
-                <ImageIcon className="w-4 h-4 text-[#8B8A6C]" />
-            </h3>
-            <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
-                {order.product?.images?.map((img, i) => (
-                    <div key={i} className="aspect-square bg-gray-100 rounded-xl overflow-hidden relative border border-gray-100 hover:border-primary transition-colors cursor-pointer group">
-                        <Image src={img || "/icons/Logo.png"} alt="product" fill className="object-contain p-2 grayscale group-hover:grayscale-0 transition-opacity" />
-                    </div>
-                )) || <p className="text-gray-400 text-sm text-right col-span-full">لا توجد صور</p>}
-            </div>
-        </div>
+        {productData.images && productData.images.length > 0 && (
+          <div className="space-y-4 text-right">
+              <h3 className="flex items-center justify-start gap-2 font-bold text-gray-700">
+                  <span>صور المنتج :</span>
+                  <ImageIcon className="w-4 h-4 text-[#8B8A6C]" />
+              </h3>
+              <div className="grid grid-cols-5 md:grid-cols-10 gap-3">
+                  {productData.images.map((img, i) => (
+                      <div key={i} className="aspect-square bg-gray-100 rounded-xl overflow-hidden relative border border-gray-100 hover:border-primary transition-colors cursor-pointer group">
+                          <Image src={img || "/icons/Logo.png"} alt="product" fill className="object-contain p-2 grayscale group-hover:grayscale-0 transition-opacity" />
+                      </div>
+                  ))}
+              </div>
+          </div>
+        )}
 
         {/* Action Buttons Footer */}
         {order.status === 'pending' && (
