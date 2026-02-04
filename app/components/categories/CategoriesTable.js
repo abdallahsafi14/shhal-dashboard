@@ -28,18 +28,33 @@ export default function CategoriesTable() {
 
   const data = useMemo(() => {
     if (!categoriesData?.data) return [];
-    return categoriesData.data.map((cat) => ({
-      ...cat,
-      id: cat.id || "---",
-      mainName: cat.name || "---",
-      image: cat.image || "/icons/Logo.png",
-      order: cat.priority || cat.id || 0, // Use ID as fallback since API doesn't have priority
-      subCategories: cat.sub_categories?.map((sc) => sc.name) || [],
-      dateAdded: cat.created_at
-        ? new Date(cat.created_at).toLocaleDateString("en-GB")
-        : "---",
-      status: cat.status === "active" ? "فئة مفعلة" : "غير مفعلة",
-    }));
+    return categoriesData.data.map((cat) => {
+      // Build full image URL if image exists
+      let imageUrl = "/icons/Logo.png";
+      if (cat.image) {
+        // If image starts with http, use as is, otherwise add storage path
+        if (cat.image.startsWith("http://") || cat.image.startsWith("https://")) {
+          imageUrl = cat.image;
+        } else {
+          // Add /storage/ before the path
+          const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "https://api.shihal.net";
+          imageUrl = `${baseUrl}/storage/${cat.image}`;
+        }
+      }
+      
+      return {
+        ...cat,
+        id: cat.id || "---",
+        mainName: cat.name || "---",
+        image: imageUrl,
+        order: cat.priority || cat.id || 0, // Use ID as fallback since API doesn't have priority
+        subCategories: cat.sub_categories?.map((sc) => sc.name) || [],
+        dateAdded: cat.created_at
+          ? new Date(cat.created_at).toLocaleDateString("en-GB")
+          : "---",
+        status: cat.status === "active" ? "فئة مفعلة" : "غير مفعلة",
+      };
+    });
   }, [categoriesData]);
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

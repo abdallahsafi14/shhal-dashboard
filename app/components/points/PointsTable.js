@@ -15,11 +15,28 @@ import { usePoints } from "@/hooks/useDashboard";
 
 export default function PointsTable() {
   const [globalFilter, setGlobalFilter] = useState("");
-  const { data: pointsData, isLoading } = usePoints({ search: globalFilter });
+  const [filterParams, setFilterParams] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data: pointsData, isLoading } = usePoints({ search: globalFilter, page: currentPage, ...filterParams });
+  
+  // Get pagination info from API (if available)
+  const pagination = pointsData?.data?.pagination || {};
+  const totalItems = pagination.total || 0;
+  const perPage = pagination.per_page || 15;
+  const lastPage = pagination.last_page || 1;
+  const currentPageFromAPI = pagination.current_page || 1;
+
+  // Sync currentPage with API response
+  React.useEffect(() => {
+    if (currentPageFromAPI && currentPageFromAPI !== currentPage) {
+      setCurrentPage(currentPageFromAPI);
+    }
+  }, [currentPageFromAPI]);
   
   const data = useMemo(() => {
-    if (!pointsData?.data) return [];
-    return pointsData.data.map(item => ({
+    // Handle new API structure: data.redemptions (array)
+    const redemptions = pointsData?.data?.redemptions || [];
+    return redemptions.map(item => ({
       ...item,
       id: item.id || "---",
       userName: item.user?.name || "---",
@@ -32,7 +49,46 @@ export default function PointsTable() {
   }, [pointsData]);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false); // Toggle for filter popover
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  // Filter States
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterSortBy, setFilterSortBy] = useState("created_at");
+  const [filterSortOrder, setFilterSortOrder] = useState("desc");
+
+  const handleFilterApply = () => {
+    const filters = {};
+    if (filterStatus) filters.status = filterStatus;
+    if (filterPaymentMethod) filters.payment_method = filterPaymentMethod;
+    if (filterDateFrom) filters.date_from = filterDateFrom;
+    if (filterDateTo) filters.date_to = filterDateTo;
+    if (filterSortBy) filters.sort_by = filterSortBy;
+    if (filterSortOrder) filters.sort_order = filterSortOrder;
+    setFilterParams(filters);
+    setCurrentPage(1); // Reset to first page when filters change
+    setIsFilterOpen(false);
+  };
+
+  const handleFilterReset = () => {
+    setFilterStatus("");
+    setFilterPaymentMethod("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterSortBy("created_at");
+    setFilterSortOrder("desc");
+    setFilterParams({});
+    setCurrentPage(1); // Reset to first page
+    setIsFilterOpen(false);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    // Scroll to top of table
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleRowClick = (row) => {
       setSelectedTransaction(row);
@@ -126,7 +182,8 @@ export default function PointsTable() {
     },
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true, // Use server-side pagination
+    pageCount: lastPage,
     getFilteredRowModel: getFilteredRowModel(),
   });
 
@@ -163,64 +220,123 @@ export default function PointsTable() {
              <div className="relative group">
                 <button 
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="flex items-center gap-2 bg-white border-b border-gray-200 px-4 py-2 text-gray-600 text-sm hover:text-primary transition-colors"
+                    className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg text-gray-600 text-sm hover:border-primary transition-colors"
                 >
-                   <span>كل الحالات</span>
+                   <span>{filterStatus ? (filterStatus === 'pending' ? 'قيد المعالجة' : filterStatus === 'approved' ? 'تم الموافقة' : 'تم الرفض') : 'كل الحالات'}</span>
                    <ChevronDown className="w-4 h-4" />
                 </button>
 
-                {/* The Filter Popover (No Overlay) */}
+                {/* Filter Popover */}
                 {isFilterOpen && (
-                    <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
+                    <div className="absolute top-full text-right mt-2 w-80 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
                         <div className="space-y-3">
-                             {/* Date Filter */}
-                             <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">التاريخ حسب التاريخ :</label>
-                                 <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>اختار التاريخ الذي تريده....</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
-                                 </div>
-                             </div>
-
                              {/* Status Filter */}
                              <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الحالة :</label>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">فلترة حسب الحالة : pending, approved, rejected</label>
                                  <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>قيد المعالجة</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
-                                 </div>
-                             </div>
-                             
-                             {/* Payment Method Filter */}
-                             <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب طريقة الدفع :</label>
-                                 <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>اختر طريقة الدفع التي تريدها...</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
+                                    <select
+                                      value={filterStatus}
+                                      onChange={(e) => setFilterStatus(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="">كل الحالات</option>
+                                      <option value="pending">قيد المعالجة</option>
+                                      <option value="approved">تم الموافقة</option>
+                                      <option value="rejected">تم الرفض</option>
+                                    </select>
                                  </div>
                              </div>
 
-                             {/* Sort Filter */}
+                             {/* Payment Method Filter */}
                              <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الترتيب :</label>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">فلترة حسب طريقة الدفع : BTC, LTC, XMR, BN...</label>
                                  <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>الترتيب من الأحدث للأقدم..</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
+                                    <input
+                                      type="text"
+                                      value={filterPaymentMethod}
+                                      onChange={(e) => setFilterPaymentMethod(e.target.value)}
+                                      placeholder="BTC, LTC, XMR..."
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                                      dir="ltr"
+                                    />
+                                 </div>
+                             </div>
+
+                             {/* Date From Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">تاريخ البداية (YYYY-MM-DD) :</label>
+                                 <div className="relative">
+                                    <input
+                                      type="date"
+                                      value={filterDateFrom}
+                                      onChange={(e) => setFilterDateFrom(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                                      dir="ltr"
+                                    />
+                                 </div>
+                             </div>
+
+                             {/* Date To Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">تاريخ النهاية (YYYY-MM-DD) :</label>
+                                 <div className="relative">
+                                    <input
+                                      type="date"
+                                      value={filterDateTo}
+                                      onChange={(e) => setFilterDateTo(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:border-primary"
+                                      dir="ltr"
+                                    />
+                                 </div>
+                             </div>
+
+                             {/* Sort By Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">ترتيب حسب : created_at, points, amount, status...</label>
+                                 <div className="relative">
+                                    <select
+                                      value={filterSortBy}
+                                      onChange={(e) => setFilterSortBy(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="created_at">تاريخ الإنشاء</option>
+                                      <option value="points">النقاط</option>
+                                      <option value="amount">المبلغ</option>
+                                      <option value="status">الحالة</option>
+                                    </select>
+                                 </div>
+                             </div>
+
+                             {/* Sort Order Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">ترتيب : asc, desc</label>
+                                 <div className="relative">
+                                    <select
+                                      value={filterSortOrder}
+                                      onChange={(e) => setFilterSortOrder(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="asc">تصاعدي</option>
+                                      <option value="desc">تنازلي</option>
+                                    </select>
                                  </div>
                              </div>
 
                              {/* Apply Filter Button */}
-                             <button className="w-full bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg mt-2 transition-colors">
-                                 فلترة
-                             </button>
+                             <div className="flex gap-2 pt-2">
+                                <button 
+                                  onClick={handleFilterApply}
+                                  className="flex-1 bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg transition-colors"
+                                >
+                                  فلترة
+                                </button>
+                                <button 
+                                  onClick={handleFilterReset}
+                                  className="px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 rounded-lg transition-colors"
+                                >
+                                  إعادة تعيين
+                                </button>
+                             </div>
                         </div>
                     </div>
                 )}
@@ -269,18 +385,31 @@ export default function PointsTable() {
         {/* Pagination Section */}
         <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-50">
             <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
-                <span className="">  460 of 10 1 - 10 </span>
+                <span>
+                  {totalItems > 0 ? ((currentPageFromAPI - 1) * perPage + 1) : 0}{" "}
+                  -{" "}
+                  {Math.min(currentPageFromAPI * perPage, totalItems)}{" "}
+                  من {totalItems}
+                </span>
             </div>
             <div className="flex items-center gap-2">
                 <span className="text-[#8B8A6C]">رقم السطر :</span>
                 <div className="flex items-center gap-2 bg-[#8B8A6C] text-white px-2 py-1 rounded">
-                  <span>10</span>
+                  <span>{perPage}</span>
                   <ChevronDown className="w-3 h-3" />
                 </div>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity">
+                <button
+                  onClick={() => handlePageChange(currentPageFromAPI - 1)}
+                  disabled={currentPageFromAPI <= 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     <ChevronRight className="w-4 h-4" />
                 </button>
-                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity">
+                <button
+                  onClick={() => handlePageChange(currentPageFromAPI + 1)}
+                  disabled={currentPageFromAPI >= lastPage}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                     <ChevronLeft className="w-4 h-4" />
                 </button>
             </div>
