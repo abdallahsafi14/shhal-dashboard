@@ -39,18 +39,16 @@ export default function OrderDetailsPage({ params }) {
     return `${apiBase}/storage/${path.replace(/^\/+/, "")}`;
   };
 
-  if (isLoading) return <div className="flex items-center justify-center min-h-[400px]">جاري التحميل...</div>;
-  if (!order) return <div className="flex items-center justify-center min-h-[400px]">الطلب غير موجود</div>;
-
+  
   const handleAccept = () => {
     approveOrder(id);
   };
-
+  
   const handleRejectConfirm = (reason) => {
     rejectOrder({ id, reason });
     setIsRejectModalOpen(false);
   };
-
+  
   const images = productData?.images || [];
   const openLightbox = (index) => setLightboxIndex(index);
   const closeLightbox = () => setLightboxIndex(null);
@@ -60,7 +58,7 @@ export default function OrderDetailsPage({ params }) {
   const goNext = useCallback(() => {
     setLightboxIndex((i) => (i == null ? i : i >= images.length - 1 ? 0 : i + 1));
   }, [images.length]);
-
+  
   useEffect(() => {
     if (lightboxIndex == null) return;
     const onKey = (e) => {
@@ -71,7 +69,10 @@ export default function OrderDetailsPage({ params }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [lightboxIndex, goPrev, goNext]);
-
+  
+  if (isLoading) return <div className="flex items-center justify-center min-h-[400px]">جاري التحميل...</div>;
+  if (!order) return <div className="flex items-center justify-center min-h-[400px]">الطلب غير موجود</div>;
+  
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12 px-4 sm:px-6">
       {/* Top Header / Breadcrumb */}

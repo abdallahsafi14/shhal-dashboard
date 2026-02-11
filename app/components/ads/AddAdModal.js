@@ -12,7 +12,8 @@ export default function AddAdModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
     name: "",
     code: "",
-    dimensions: "",
+    width: "",
+    height: "",
     status: "active",
     media: null,
   });
@@ -23,7 +24,8 @@ export default function AddAdModal({ isOpen, onClose }) {
       setFormData({
         name: "",
         code: "",
-        dimensions: "",
+        width: "",
+        height: "",
         status: "active",
         media: null,
       });
@@ -77,8 +79,12 @@ export default function AddAdModal({ isOpen, onClose }) {
       alert("يرجى إدخال كود الإعلان");
       return;
     }
-    if (!formData.dimensions.trim()) {
-      alert("يرجى إدخال أبعاد الإعلان");
+    if (!formData.width.trim()) {
+      alert("يرجى إدخال عرض الإعلان");
+      return;
+    }
+    if (!formData.height.trim()) {
+      alert("يرجى إدخال ارتفاع الإعلان");
       return;
     }
     if (!formData.media) {
@@ -89,7 +95,8 @@ export default function AddAdModal({ isOpen, onClose }) {
     const submitData = new FormData();
     submitData.append("name", formData.name.trim());
     submitData.append("code", formData.code.trim());
-    submitData.append("dimensions", formData.dimensions.trim());
+    submitData.append("width", formData.width.trim());
+    submitData.append("height", formData.height.trim());
     submitData.append("status", formData.status);
     submitData.append("media", formData.media);
 
@@ -159,17 +166,32 @@ export default function AddAdModal({ isOpen, onClose }) {
               />
             </div>
 
-            {/* Dimensions */}
+            {/* width */}
             <div className="relative">
               <label className="absolute -top-3 right-4 bg-white px-1 text-sm font-bold text-[#0E3A53]">
-                أبعاد الاعلان *
+                عرض الاعلان *
               </label>
               <input
                 type="text"
-                name="dimensions"
-                value={formData.dimensions}
+                name="width"
+                value={formData.width }
                 onChange={handleInputChange}
-                placeholder="مثال: 728 * 90"
+                placeholder="مثال: 728 "
+                className="w-full border border-gray-300 rounded-lg py-3 px-4 text-right focus:outline-none focus:border-primary transition-colors h-14"
+                dir="ltr"
+                required
+              />
+            </div>
+            <div className="relative">
+              <label className="absolute -top-3 right-4 bg-white px-1 text-sm font-bold text-[#0E3A53]">
+                ارتفاع الاعلان *
+              </label>
+              <input
+                type="text"
+                name="height"
+                value={formData.height}
+                onChange={handleInputChange}
+                placeholder="مثال: 90"
                 className="w-full border border-gray-300 rounded-lg py-3 px-4 text-right focus:outline-none focus:border-primary transition-colors h-14"
                 dir="ltr"
                 required

@@ -118,7 +118,7 @@ export default function PointsPage() {
               />
             </button>
             <span className="text-gray-700 font-bold text-sm whitespace-nowrap">
-              تعطيل ميزة الصرف عند جميع المستخدمين
+              تفعيل ميزة الصرف عند جميع المستخدمين
             </span>
           </div>
         </div>
