@@ -11,13 +11,24 @@ export default function DashboardLayout({ children }) {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
+  const lgBreakpoint = 1024;
+
   useEffect(() => {
     setMounted(true);
-    // Set sidebar to open by default on desktop, closed on mobile
-    if (typeof window !== "undefined") {
-      setIsSidebarOpen(window.innerWidth >= 1024);
-    }
+    if (typeof window === "undefined") return;
+    // Initial: open on desktop (>= lg), closed on small screens
+    setIsSidebarOpen(window.innerWidth >= lgBreakpoint);
   }, []);
+
+  // Sync sidebar with window size on resize: small = closed, large = open
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    const onResize = () => {
+      setIsSidebarOpen(window.innerWidth >= lgBreakpoint);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [mounted]);
 
   useEffect(() => {
     if (USE_MOCK) return; // Skip auth check in mock mode

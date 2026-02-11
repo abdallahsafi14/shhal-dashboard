@@ -42,32 +42,22 @@ export default function SettingsPage() {
         <div className="flex-1 bg-white rounded-3xl p-10 shadow-sm border border-gray-50 min-h-[500px]">
           
           {activeTab === "visitor" ? (
-            <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-300">
+            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="flex items-center justify-start gap-2 text-xl font-bold text-gray-800">
-                 <span>التحكم بالزائرين :</span>
+                 <span>التحكم بالزائرين</span>
               </div>
 
-              <div className="flex items-center justify-start gap-x-12 p-8 bg-gray-50/30 rounded-2xl border border-gray-50">
-                 <div className="flex flex-col items-end gap-1">
-                    <span className="text-gray-700 font-bold text-lg">زر لإغلاق وفتح الموقع للزائرين (الغير مسجلين)</span>
-                 </div>
-                 
-                 {/* Custom Toggle Switch */}
-                 <button 
+              <div className="flex items-center justify-between gap-4 p-6 bg-gray-50/30 rounded-2xl border border-gray-50">
+                 <span className="text-gray-700 font-medium">
+                   {isVisitorOpen ? "الموقع مفتوح للزائرين" : "الموقع مغلق للزائرين"}
+                 </span>
+                 <button
+                  type="button"
                   onClick={handleVisitorToggle}
-                  className={`w-14 h-7 rounded-full relative transition-colors duration-200 outline-none ${isVisitorOpen ? 'bg-[#8B8A6C]' : 'bg-gray-300'}`}
+                  className={`w-14 h-7 rounded-full relative transition-colors duration-200 outline-none shrink-0 ${isVisitorOpen ? "bg-[#8B8A6C]" : "bg-gray-300"}`}
                  >
-                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-200 shadow-sm ${isVisitorOpen ? 'left-1' : 'left-8'}`} />
+                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all duration-200 shadow-sm ${isVisitorOpen ? "left-1" : "left-8"}`} />
                  </button>
-              </div>
-
-              <div className="bg-[#F8F9FA] p-8 rounded-2xl space-y-4 text-right">
-                 <p className="text-gray-600 font-bold text-sm leading-relaxed">
-                   حالة الإغلاق : سوف يتمكن الزائر من دخول الموقع أو التطبيق و رؤية محتوى الصفحة الرئيسية من دون اي معلومات أخرى.
-                 </p>
-                 <p className="text-gray-600 font-bold text-sm leading-relaxed">
-                   حالة الفتح: سوف يتمكن الزائر من رؤية جميع المعلومات الموقع أو التطبيق بدون إستثناء، أي كما يراه المستخدم العادي
-                 </p>
               </div>
             </div>
           ) : (
