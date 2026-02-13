@@ -130,17 +130,15 @@ export default function TransactionDetailsModal({ isOpen, onClose, transaction, 
                 </div>
             </div>
 
-            {/* Notes Section - Outside Gray Box? Or Inside? 
-                Screenshot shows it seems to be outside or separated by a line? 
-                Actually, in the screenshot, the notes text 'هذا النص هو مثال...' is inside a white box with a border?
-                Let's put it outside the gray box for now, or as a separate section.
-            */}
-            <div className="relative mb-8">
-                 <label className="absolute -top-3 right-4 bg-white px-1 text-sm font-bold text-[#0E3A53]">ملاحظات</label>
-                 <div className="w-full border border-gray-200 rounded-lg p-4 text-xs text-gray-400 leading-relaxed text-right">
-                    هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة، لقد تم توليد هذا النص من مولد النص العربى، حيث يمكنك أن تولد مثل هذا النص أو العديد من النصوص الأخرى إضافة إلى زيادة عدد الحروف التى يولدها التطبيق
-                 </div>
-            </div>
+            {/* Notes from admin (when approved or rejected) */}
+            {(data.notes && (data.rawStatus === "approved" || data.rawStatus === "rejected")) && (
+              <div className="relative mb-8">
+                <label className="absolute -top-3 right-4 bg-white px-1 text-sm font-bold text-[#0E3A53]">ملاحظات</label>
+                <div className="w-full border border-gray-200 rounded-lg p-4 text-sm text-gray-700 leading-relaxed text-right">
+                  {data.notes}
+                </div>
+              </div>
+            )}
 
             {/* Footer Buttons */}
             <div className="flex items-center justify-start gap-4 pt-2 flex-wrap">
