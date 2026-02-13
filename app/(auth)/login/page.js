@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { setCookie, getCookie } from "@/lib/cookie-utils";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,18 +14,33 @@ export default function Login() {
   const { login, isLoggingIn } = useAuth();
   const router = useRouter();
 
-  // Check for unauthorized parameter and show message
+  // Restore session: if we have a token in localStorage but landed on login (e.g. cookie
+  // was cleared on reload), set the cookie again and redirect to dashboard so reload keeps us in.
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      const unauthorized = urlParams.get("unauthorized");
-      if (unauthorized === "true") {
-        toast.warning("يجب عليك تسجيل الدخول للوصول لهذه الصفحة");
-        // Clean up the URL by removing the parameter
-        urlParams.delete("unauthorized");
-        const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : "");
-        router.replace(newUrl);
-      }
+    if (typeof window === "undefined") return;
+    const token = localStorage.getItem("shhal_admin_token");
+    if (!token) return;
+    if (getCookie("shhal_admin_token")) return; // Cookie already set, stay on login or let user log in again
+    setCookie("shhal_admin_token", token, 7);
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirect = urlParams.get("redirect") || "/";
+    urlParams.delete("redirect");
+    urlParams.delete("unauthorized");
+    const query = urlParams.toString() ? `?${urlParams.toString()}` : "";
+    router.replace(redirect + query);
+  }, [router]);
+
+  // Show unauthorized message only when we're truly logged out (no token to restore)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (localStorage.getItem("shhal_admin_token")) return; // Session restore will handle redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const unauthorized = urlParams.get("unauthorized");
+    if (unauthorized === "true") {
+      toast.warning("يجب عليك تسجيل الدخول للوصول لهذه الصفحة");
+      urlParams.delete("unauthorized");
+      const newUrl = window.location.pathname + (urlParams.toString() ? `?${urlParams.toString()}` : "");
+      router.replace(newUrl);
     }
   }, [router]);
 

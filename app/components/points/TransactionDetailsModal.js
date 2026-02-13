@@ -2,7 +2,7 @@
 import React, { useRef, useEffect } from "react";
 import { X, User, FileText, Calendar, Coins, Wallet, CreditCard, Bitcoin } from "lucide-react";
 
-export default function TransactionDetailsModal({ isOpen, onClose, transaction }) {
+export default function TransactionDetailsModal({ isOpen, onClose, transaction, onApprove, onReject, onDelete }) {
   const modalRef = useRef(null);
 
   // Close modal when clicking outside
@@ -35,10 +35,11 @@ export default function TransactionDetailsModal({ isOpen, onClose, transaction }
   };
 
   const isCompleted = data.status === "تم صرفها";
-  const statusStyles = isCompleted 
-    ? "bg-[#D1FAE5] text-[#059669]" 
+  const isPending = data.rawStatus === "pending";
+  const redemptionId = data.id != null && data.id !== "---" ? Number(data.id) : null;
+  const statusStyles = isCompleted
+    ? "bg-[#D1FAE5] text-[#059669]"
     : "bg-[#E0F2FE] text-[#0369A1]";
-    
   const statusDot = isCompleted ? "bg-[#059669]" : "bg-[#0369A1]";
 
   return (
@@ -142,16 +143,34 @@ export default function TransactionDetailsModal({ isOpen, onClose, transaction }
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex items-center justify-start gap-4 pt-2">
-
-                 {/* Action Button (Left / End) */}
-                 <button className="bg-[#0E3A53] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#082f45] transition-colors text-sm">
-                    {isCompleted ? "تعديل العملية" : "قبول العملية"}
-                 </button>
-                 {/* Delete Action (Right / Start) - Red Text */}
-                 <button className="text-[#DC2626] font-bold border-b border-[#DC2626] pb-0.5 hover:opacity-80 transition-opacity text-sm">
-                    حذف العملية
-                 </button>
+            <div className="flex items-center justify-start gap-4 pt-2 flex-wrap">
+                 {redemptionId && isPending && typeof onApprove === "function" && (
+                   <button
+                     type="button"
+                     onClick={() => onApprove(redemptionId)}
+                     className="bg-[#0E3A53] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#082f45] transition-colors text-sm"
+                   >
+                     قبول العملية
+                   </button>
+                 )}
+                 {redemptionId && isPending && typeof onReject === "function" && (
+                   <button
+                     type="button"
+                     onClick={() => onReject(redemptionId)}
+                     className="bg-red-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-red-700 transition-colors text-sm"
+                   >
+                     رفض العملية
+                   </button>
+                 )}
+                 {redemptionId && typeof onDelete === "function" && (
+                   <button
+                     type="button"
+                     onClick={() => onDelete(redemptionId)}
+                     className="text-[#DC2626] font-bold border-b border-[#DC2626] pb-0.5 hover:opacity-80 transition-opacity text-sm"
+                   >
+                     حذف العملية
+                   </button>
+                 )}
             </div>
 
          </div>

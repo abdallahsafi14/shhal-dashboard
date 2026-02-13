@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -7,9 +7,11 @@ import {
   getFilteredRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight, Bitcoin, Filter } from "lucide-react"; // Using Bitcoin icon as placeholder for payment method icon seen in screenshot
+import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight, Bitcoin, Filter, Check, XCircle } from "lucide-react";
 import Image from "next/image";
 import TransactionDetailsModal from "./TransactionDetailsModal";
+import RedemptionStatusModal from "./RedemptionStatusModal";
+import DeleteRedemptionModal from "./DeleteRedemptionModal";
 
 import { usePoints } from "@/hooks/useDashboard";
 
@@ -44,12 +46,15 @@ export default function PointsTable() {
       financialValue: `${item.amount || 0} $`,
       paymentMethod: `${item.amount || 0} $`,
       date: item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB') : "---",
-      status: item.status === 'completed' ? "تم صرفها" : item.status === 'pending' ? "قيد المعالجة" : "تم رفضها",
+      rawStatus: item.status,
+      status: item.status === "completed" || item.status === "approved" ? "تم صرفها" : item.status === "pending" ? "قيد المعالجة" : "تم رفضها",
     }));
   }, [pointsData]);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusModal, setStatusModal] = useState({ open: false, redemptionId: null, action: null });
+  const [deleteModal, setDeleteModal] = useState({ open: false, redemptionId: null });
 
   // Filter States
   const [filterStatus, setFilterStatus] = useState("");
@@ -86,14 +91,13 @@ export default function PointsTable() {
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
-    // Scroll to top of table
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleRowClick = (row) => {
-      setSelectedTransaction(row);
-      setIsDetailsModalOpen(true);
-  };
+  const handleRowClick = useCallback((row) => {
+    setSelectedTransaction(row);
+    setIsDetailsModalOpen(true);
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -152,26 +156,70 @@ export default function PointsTable() {
       },
       {
         id: "actions",
-        header: "", 
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <button className="text-[#0E3A53] hover:text-[#062b40] transition-colors">
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button 
-                onClick={(e) => {
+        header: "",
+        cell: ({ row }) => {
+          const raw = row.original;
+          const id = raw.id;
+          const isPending = raw.rawStatus === "pending";
+          const isNumericId = typeof id === "number" || (typeof id === "string" && id !== "---" && !isNaN(Number(id)));
+          return (
+            <div className="flex items-center gap-2 justify-center" onClick={(e) => e.stopPropagation()}>
+              {isNumericId && (
+                <button
+                  type="button"
+                  onClick={(e) => {
                     e.stopPropagation();
-                    handleRowClick(row.original);
-                }} 
-                className="text-[#0E3A53] hover:text-[#062b40] transition-colors"
-             >
-              <Edit2 className="w-4 h-4" />
-            </button>
-          </div>
-        ),
+                    setDeleteModal({ open: true, redemptionId: Number(id) });
+                  }}
+                  className="text-red-600 hover:text-red-700 transition-colors p-1"
+                  title="حذف"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              {isPending && isNumericId && (
+                <>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStatusModal({ open: true, redemptionId: Number(id), action: "reject" });
+                    }}
+                    className="text-red-600 hover:text-red-700 transition-colors p-1"
+                    title="رفض"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStatusModal({ open: true, redemptionId: Number(id), action: "approve" });
+                    }}
+                    className="text-green-600 hover:text-green-700 transition-colors p-1"
+                    title="قبول"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleRowClick(raw);
+                }}
+                className="text-[#0E3A53] hover:text-[#062b40] transition-colors p-1"
+                title="تفاصيل"
+              >
+                <Edit2 className="w-4 h-4" />
+              </button>
+            </div>
+          );
+        },
       },
     ],
-    []
+    [handleRowClick]
   );
 
   const table = useReactTable({
@@ -417,10 +465,39 @@ export default function PointsTable() {
       </div>
       
       {/* Details Modal */}
-      <TransactionDetailsModal 
-        isOpen={isDetailsModalOpen} 
-        onClose={() => setIsDetailsModalOpen(false)} 
+      <TransactionDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
         transaction={selectedTransaction}
+        onApprove={(id) => {
+          setIsDetailsModalOpen(false);
+          setStatusModal({ open: true, redemptionId: id, action: "approve" });
+        }}
+        onReject={(id) => {
+          setIsDetailsModalOpen(false);
+          setStatusModal({ open: true, redemptionId: id, action: "reject" });
+        }}
+        onDelete={(id) => {
+          setIsDetailsModalOpen(false);
+          setDeleteModal({ open: true, redemptionId: id });
+        }}
+      />
+
+      {/* Status (Approve/Reject) Modal */}
+      <RedemptionStatusModal
+        isOpen={statusModal.open}
+        onClose={() => setStatusModal({ open: false, redemptionId: null, action: null })}
+        redemptionId={statusModal.redemptionId}
+        action={statusModal.action}
+        onSuccess={() => setStatusModal({ open: false, redemptionId: null, action: null })}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteRedemptionModal
+        isOpen={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, redemptionId: null })}
+        redemptionId={deleteModal.redemptionId}
+        onSuccess={() => setDeleteModal({ open: false, redemptionId: null })}
       />
     </>
   );

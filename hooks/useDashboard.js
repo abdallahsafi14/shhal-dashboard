@@ -15,8 +15,10 @@ const useMockMutation = (mutationFn, successMessage, queryKeyToInvalidate) => {
   return useMutation({
     mutationFn: USE_MOCK ? async (data) => data : mutationFn,
     onSuccess: () => {
-      if (queryKeyToInvalidate)
-        queryClient.invalidateQueries([queryKeyToInvalidate]);
+      if (queryKeyToInvalidate) {
+        const keys = Array.isArray(queryKeyToInvalidate) ? queryKeyToInvalidate : [queryKeyToInvalidate];
+        keys.forEach((key) => queryClient.invalidateQueries([key]));
+      }
       toast.success(successMessage);
     },
     onError: (error) => handleApiError(error, "فشل تنفيذ العملية"),
@@ -45,21 +47,38 @@ export const useUserById = (id) => {
   });
 };
 
+export const useUsersStatistics = () => {
+  return useQuery({
+    queryKey: ["usersStatistics"],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({
+            data: {
+              total_users: 0,
+              active_users: 0,
+              suspended_users: 0,
+              new_users: 0,
+            },
+          })
+        : dashboardService.getUsersStatistics(),
+  });
+};
+
 export const useUserActions = () => {
   const createMutation = useMockMutation(
     dashboardService.createUser,
     "تم إضافة المستخدم بنجاح",
-    "users"
+    ["users", "usersStatistics"]
   );
   const updateMutation = useMockMutation(
     ({ id, data }) => dashboardService.updateUser(id, data),
     "تم تحديث المستخدم بنجاح",
-    "users"
+    ["users", "usersStatistics"]
   );
   const deleteMutation = useMockMutation(
     dashboardService.deleteUser,
     "تم حذف المستخدم بنجاح",
-    "users"
+    ["users", "usersStatistics"]
   );
 
   return {
@@ -307,16 +326,33 @@ export const useOrderDetails = (id) => {
   });
 };
 
+export const useProductSubmissionsStatistics = () => {
+  return useQuery({
+    queryKey: ["orderStatistics"],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({
+            data: {
+              update_count: 0,
+              create_count: 0,
+              pending_count: 0,
+              approved_count: 0,
+            },
+          })
+        : dashboardService.getProductSubmissionsStatistics(),
+  });
+};
+
 export const useOrderActions = () => {
   const approveMutation = useMockMutation(
     (id) => dashboardService.approveOrder(id),
     "تم قبول الطلب بنجاح",
-    "orders"
+    ["orders", "orderStatistics"]
   );
   const rejectMutation = useMockMutation(
     ({ id, reason }) => dashboardService.rejectOrder(id, reason),
     "تم رفض الطلب بنجاح",
-    "orders"
+    ["orders", "orderStatistics"]
   );
 
   return {
@@ -380,6 +416,43 @@ export const usePointActions = () => {
   return {
     updatePolicy: updatePolicyMutation.mutate,
     isUpdating: updatePolicyMutation.isPending,
+  };
+};
+
+export const usePointsRedemptionActions = () => {
+  const queryClient = useQueryClient();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: USE_MOCK
+      ? async (payload) => payload
+      : (payload) =>
+          dashboardService.updateRedemptionStatus(payload.redemptionId, {
+            status: payload.status,
+            notes: payload.notes || undefined,
+          }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["points"]);
+      toast.success("تم تحديث حالة العملية بنجاح");
+    },
+    onError: (error) => handleApiError(error, "فشل تحديث حالة العملية"),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: USE_MOCK
+      ? async (id) => id
+      : (redemptionId) => dashboardService.deleteRedemption(redemptionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["points"]);
+      toast.success("تم حذف العملية بنجاح");
+    },
+    onError: (error) => handleApiError(error, "فشل حذف العملية"),
+  });
+
+  return {
+    updateStatus: updateStatusMutation.mutate,
+    isUpdatingStatus: updateStatusMutation.isPending,
+    deleteRedemption: deleteMutation.mutate,
+    isDeleting: deleteMutation.isPending,
   };
 };
 

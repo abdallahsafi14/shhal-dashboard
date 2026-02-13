@@ -68,21 +68,21 @@ export default function Sidebar({ isOpen, onClose }) {
 
             return (
               <Link
-                key={index}
-                href={item.href}
-                onClick={(e) => {
-                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                    onClose();
-                  }
-                }}
-                className={`flex items-center justify-end gap-4 px-6 py-4 transition-all duration-200 group font-bold relative ${
-                  isActive
-                    ? "text-[#8B8A6C] bg-gray-50/50"
-                    : "text-gray-400 hover:text-[#8B8A6C] hover:bg-gray-50/30"
-                }`}
+              key={index}
+              href={item.href}
+              onClick={(e) => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  onClose();
+                }
+              }}
+              className={`flex items-center justify-start gap-4 px-6 py-4 transition-all duration-200 group font-bold relative ${
+                isActive
+                ? "text-[#8B8A6C] bg-gray-50/50"
+                : "text-gray-400 hover:text-[#8B8A6C] hover:bg-gray-50/30"
+              }`}
               >
+              <item.icon className="w-6 h-6 flex-shrink-0" />
                 <span className="text-base">{item.name}</span>
-                <item.icon className="w-6 h-6 flex-shrink-0" />
 
                 {/* Active Indicator Bar */}
                 {isActive && (
