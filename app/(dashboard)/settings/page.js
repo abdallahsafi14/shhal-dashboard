@@ -47,7 +47,7 @@ export default function SettingsPage() {
                  <span>التحكم بالزائرين</span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 p-6 bg-gray-50/30 rounded-2xl border border-gray-50">
+              <div className="flex items-center justify-between flex-wrap gap-4 p-6 bg-gray-50/30 rounded-2xl border border-gray-50">
                  <span className="text-gray-700 font-medium">
                    {isVisitorOpen ? "الموقع مفتوح للزائرين" : "الموقع مغلق للزائرين"}
                  </span>

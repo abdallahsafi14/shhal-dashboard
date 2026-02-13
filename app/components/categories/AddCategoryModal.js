@@ -153,16 +153,16 @@ export default function AddCategoryModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div
         ref={modalRef}
-        className="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden relative animate-in fade-in zoom-in duration-200"
+        className="bg-white w-full max-w-lg max-h-[90vh] rounded-2xl shadow-xl overflow-hidden relative animate-in fade-in zoom-in duration-200 flex flex-col"
       >
         <button
           onClick={onClose}
-          className="absolute top-6 left-6 text-gray-400 hover:text-gray-600 transition-colors z-10"
+          className="absolute top-6 left-6 text-gray-400 hover:text-gray-600 transition-colors z-10 shrink-0"
         >
           <X className="w-6 h-6" />
         </button>
 
-        <div className="p-8 pt-12">
+        <div className="p-8 pt-12 overflow-y-auto min-h-0 flex-1">
           <div className="text-center mb-8">
             <h2 className="text-xl font-bold text-gray-700">
               أضف معلومات عن فئة جديدة وقم بإنشاء الفئات الفرعية التابعة لها .
