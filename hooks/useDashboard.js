@@ -480,6 +480,37 @@ export const useSettingActions = () => {
   };
 };
 
+export const useSmtpSettings = () => {
+  return useQuery({
+    queryKey: ["smtpSettings"],
+    queryFn: () =>
+      USE_MOCK
+        ? Promise.resolve({
+            data: {
+              smtp_host: "",
+              smtp_username: "",
+              smtp_password: "",
+              smtp_port: 465,
+              smtp_encryption: "ssl",
+            },
+          })
+        : dashboardService.getSmtpSettings(),
+  });
+};
+
+export const useSmtpSettingsActions = () => {
+  const updateMutation = useMockMutation(
+    dashboardService.updateSmtpSettings,
+    "تم تحديث إعدادات SMTP بنجاح",
+    "smtpSettings"
+  );
+
+  return {
+    updateSmtpSettings: updateMutation.mutate,
+    isUpdatingSmtp: updateMutation.isPending,
+  };
+};
+
 // --- Dashboard Stats Hooks ---
 export const useStats = () => {
   return useQuery({

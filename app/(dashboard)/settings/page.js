@@ -2,15 +2,17 @@
 import React, { useState, useEffect } from "react";
 import EditSettingsModal from "@/app/components/settings/EditSettingsModal";
 
-import { useSettings, useSettingActions } from "@/hooks/useDashboard";
+import { useSettings, useSettingActions, useSmtpSettings } from "@/hooks/useDashboard";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("visitor"); // 'visitor' or 'system'
   const { data: settingsResponse, isLoading } = useSettings();
   const { updateSettings } = useSettingActions();
+  const { data: smtpResponse, isLoading: isLoadingSmtp } = useSmtpSettings();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   const settings = settingsResponse?.data || {};
+  const smtp = smtpResponse?.data || {};
   const [isVisitorOpen, setIsVisitorOpen] = useState(settings.is_public ?? true);
 
   // Update state when settings load
@@ -73,39 +75,47 @@ export default function SettingsPage() {
                </div>
 
                {/* System Config Grid */}
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  
-                  {/* SMTP HOST */}
-                  <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
-                     <span className="text-gray-400 font-bold text-xs">SMTP HOST</span>
-                     <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">{settings.smtp_host || "---"}</span>
-                  </div>
+               {isLoadingSmtp ? (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   {[1, 2, 3, 4, 5].map((i) => (
+                     <div key={i} className={`bg-gray-50/50 p-8 rounded-2xl border border-gray-100 animate-pulse h-28 ${i === 5 ? "md:col-span-2" : ""}`} />
+                   ))}
+                 </div>
+               ) : (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    
+                    {/* SMTP HOST */}
+                    <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
+                       <span className="text-gray-400 font-bold text-xs">SMTP HOST</span>
+                       <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">{smtp.smtp_host || "---"}</span>
+                    </div>
 
-                  {/* Port */}
-                  <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
-                     <span className="text-gray-400 font-bold text-xs">Port</span>
-                     <span className="text-gray-600 font-bold text-lg">{settings.smtp_port || "---"}</span>
-                  </div>
+                    {/* Port */}
+                    <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
+                       <span className="text-gray-400 font-bold text-xs">Port</span>
+                       <span className="text-gray-600 font-bold text-lg">{smtp.smtp_port || "---"}</span>
+                    </div>
 
-                  {/* Password */}
-                  <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
-                     <span className="text-gray-400 font-bold text-xs">Password</span>
-                     <span className="text-gray-600 font-bold text-lg tracking-[0.3em]">********</span>
-                  </div>
+                    {/* Password */}
+                    <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
+                       <span className="text-gray-400 font-bold text-xs">Password</span>
+                       <span className="text-gray-600 font-bold text-lg tracking-[0.3em]">********</span>
+                    </div>
 
-                  {/* Encryption */}
-                  <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
-                     <span className="text-gray-400 font-bold text-xs">Encryption</span>
-                     <span className="bg-[#8B8A6C] text-white px-8 py-1.5 rounded-lg font-bold text-sm">{settings.smtp_encryption || "SSL"}</span>
-                  </div>
+                    {/* Encryption */}
+                    <div className="bg-gray-50/50 p-8 rounded-2xl border border-gray-100 flex flex-col items-end gap-4">
+                       <span className="text-gray-400 font-bold text-xs">Encryption</span>
+                       <span className="bg-[#8B8A6C] text-white px-8 py-1.5 rounded-lg font-bold text-sm uppercase">{smtp.smtp_encryption || "---"}</span>
+                    </div>
 
-                  {/* UserName */}
-                  <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100 flex flex-col items-end gap-4 md:col-span-2">
-                     <span className="text-gray-400 font-bold text-xs">UserName</span>
-                     <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">{settings.smtp_user || "---"}</span>
-                  </div>
+                    {/* UserName */}
+                    <div className="bg-gray-50/50 p-8 rounded-3xl border border-gray-100 flex flex-col items-end gap-4 md:col-span-2">
+                       <span className="text-gray-400 font-bold text-xs">UserName</span>
+                       <span className="text-gray-600 font-bold text-lg overflow-hidden text-ellipsis w-full text-right">{smtp.smtp_username || "---"}</span>
+                    </div>
 
-               </div>
+                 </div>
+               )}
             </div>
           )}
 

@@ -1,13 +1,12 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { Search, ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import EditUserModal from "./EditUserModal";
 import DeleteUserModal from "./DeleteUserModal";
@@ -17,11 +16,25 @@ import { useUsers, useUserActions } from "@/hooks/useDashboard";
 
 export default function AccountsTable() {
   const [globalFilter, setGlobalFilter] = useState("");
-  const { data: usersData, isLoading } = useUsers({ search: globalFilter });
+  const [filterParams, setFilterParams] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const { data: usersData, isLoading } = useUsers({ search: globalFilter, page: currentPage, ...filterParams });
   const { deleteUser } = useUserActions();
-  
+
+  // Pagination info from API
+  const pagination = usersData?.data?.pagination || {};
+  const totalItems = pagination.total || 0;
+  const perPage = pagination.per_page || 15;
+  const lastPage = pagination.last_page || 1;
+  const currentPageFromAPI = pagination.current_page || 1;
+
+  React.useEffect(() => {
+    if (currentPageFromAPI && currentPageFromAPI !== currentPage) {
+      setCurrentPage(currentPageFromAPI);
+    }
+  }, [currentPageFromAPI]);
+
   const data = useMemo(() => {
-    // Handle paginated response structure: data.data.data
     const users = usersData?.data?.data || usersData?.data || [];
     return users.map(user => ({
       ...user,
@@ -30,9 +43,8 @@ export default function AccountsTable() {
       avatar: user.avatar || "/icons/Logo.png",
       phone: user.phone || "---",
       email: user.email || "---",
-      date: user.created_at ? new Date(user.created_at).toLocaleDateString('en-GB') : "---",
-      // Keep original status for API, add displayStatus for UI
-      displayStatus: user.status === 'active' ? "نشط" : "متوقف",
+      date: user.created_at ? new Date(user.created_at).toLocaleDateString("en-GB") : "---",
+      displayStatus: user.status === "active" ? "نشط" : "متوقف",
     }));
   }, [usersData]);
 
@@ -42,12 +54,44 @@ export default function AccountsTable() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const handleRowClick = (row) => {
+  /* Filter State */
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterRole, setFilterRole] = useState("");
+  const [filterSortBy, setFilterSortBy] = useState("created_at");
+  const [filterSortOrder, setFilterSortOrder] = useState("desc");
+
+  const handleFilterApply = () => {
+    const filters = {};
+    if (filterStatus) filters.status = filterStatus;
+    if (filterRole) filters.role = filterRole;
+    if (filterSortBy) filters.sort_by = filterSortBy;
+    if (filterSortOrder) filters.sort_order = filterSortOrder;
+    setFilterParams(filters);
+    setCurrentPage(1);
+    setIsFilterOpen(false);
+  };
+
+  const handleFilterReset = () => {
+    setFilterStatus("");
+    setFilterRole("");
+    setFilterSortBy("created_at");
+    setFilterSortOrder("desc");
+    setFilterParams({});
+    setCurrentPage(1);
+    setIsFilterOpen(false);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleRowClick = useCallback((row) => {
     setSelectedUserId(row.original.id);
     setIsDetailsModalOpen(true);
-  };
+  }, []);
 
   const handleEditClick = () => {
     if (selectedUserId) {
@@ -77,6 +121,14 @@ export default function AccountsTable() {
       e.stopPropagation();
       setSelectedRow(row);
       setIsDeleteModalOpen(true);
+  };
+
+  // Build filter button label
+  const getFilterLabel = () => {
+    const parts = [];
+    if (filterStatus) parts.push(filterStatus === "active" ? "نشط" : "متوقف");
+    if (filterRole) parts.push(filterRole === "admin" ? "مدير" : "مستخدم");
+    return parts.length > 0 ? parts.join(" / ") : "كل الحالات";
   };
 
   const columns = useMemo(
@@ -136,7 +188,7 @@ export default function AccountsTable() {
         id: "actions",
         header: "", 
         cell: ({ row }) => (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
             <button 
                 onClick={(e) => handleDeleteClick(row.original, e)}
                 className="text-gray-400 hover:text-red-500 transition-colors"
@@ -164,7 +216,8 @@ export default function AccountsTable() {
     },
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    pageCount: lastPage,
     getFilteredRowModel: getFilteredRowModel(),
   });
 
@@ -172,7 +225,7 @@ export default function AccountsTable() {
     <>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         {/* Top Filter Section */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 relative z-20">
           {/* Right Side: Search */}
           <div className="relative w-full md:w-80">
             <input
@@ -184,7 +237,7 @@ export default function AccountsTable() {
             />
           </div>
           {/* Left Side: Filters */}
-          <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex gap-3 w-full md:w-auto items-center">
              <div className="relative group">
                 <button className="flex items-center gap-2 bg-[#EAEAEA] border border-transparent px-6 py-2 rounded-lg text-gray-700 text-sm font-medium">
                    <span>فلترة حسب :</span>
@@ -195,51 +248,93 @@ export default function AccountsTable() {
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
                     className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-lg text-gray-600 text-sm hover:border-primary transition-colors"
                 >
-                   <span>كل الحالات</span>
+                   <span>{getFilterLabel()}</span>
                    <ChevronDown className="w-4 h-4" />
                 </button>
 
                 {/* Filter Popover */}
                 {isFilterOpen && (
-                    <div className="absolute top-full text-right mt-2 w-72 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
+                    <div className="absolute top-full text-right mt-2 w-80 bg-[#F3F2F1] rounded-xl shadow-xl border border-gray-100 p-4 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left left-0">
                         <div className="space-y-3">
-                             {/* Date Filter */}
-                             <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">التاريخ حسب التاريخ :</label>
-                                 <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>اختار التاريخ الذي تريده....</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
-                                 </div>
-                             </div>
-
                              {/* Status Filter */}
                              <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الحالة :</label>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">فلترة حسب الحالة :</label>
                                  <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>نشط / متوقف</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
+                                    <select
+                                      value={filterStatus}
+                                      onChange={(e) => setFilterStatus(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="">كل الحالات</option>
+                                      <option value="active">نشط</option>
+                                      <option value="suspended">متوقف</option>
+                                    </select>
                                  </div>
                              </div>
 
-                             {/* Sort Filter */}
+                             {/* Role Filter */}
                              <div>
-                                 <label className="text-xs font-bold text-gray-500 mb-1 block">الفلترة حسب الترتيب :</label>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">فلترة حسب الدور :</label>
                                  <div className="relative">
-                                    <button className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-gray-500 flex justify-between items-center text-right">
-                                        <span>الترتيب من الأحدث للأقدم..</span>
-                                        <ChevronDown className="w-4 h-4" />
-                                    </button>
+                                    <select
+                                      value={filterRole}
+                                      onChange={(e) => setFilterRole(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="">كل الأدوار</option>
+                                      <option value="user">مستخدم</option>
+                                      <option value="admin">مدير</option>
+                                    </select>
                                  </div>
                              </div>
 
-                             {/* Apply Filter Button */}
-                             <button className="w-full bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg mt-2 transition-colors">
-                                 فلترة
-                             </button>
+                             {/* Sort By Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">ترتيب حسب :</label>
+                                 <div className="relative">
+                                    <select
+                                      value={filterSortBy}
+                                      onChange={(e) => setFilterSortBy(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="created_at">تاريخ الإنشاء</option>
+                                      <option value="first_name">الاسم</option>
+                                      <option value="email">البريد الإلكتروني</option>
+                                      <option value="status">الحالة</option>
+                                    </select>
+                                 </div>
+                             </div>
+
+                             {/* Sort Order Filter */}
+                             <div>
+                                 <label className="text-xs font-bold text-gray-500 mb-1 block">ترتيب :</label>
+                                 <div className="relative">
+                                    <select
+                                      value={filterSortOrder}
+                                      onChange={(e) => setFilterSortOrder(e.target.value)}
+                                      className="w-full bg-white border border-gray-200 rounded-lg py-2 px-3 text-sm text-right focus:outline-none focus:border-primary"
+                                    >
+                                      <option value="desc">تنازلي (الأحدث أولاً)</option>
+                                      <option value="asc">تصاعدي (الأقدم أولاً)</option>
+                                    </select>
+                                 </div>
+                             </div>
+
+                             {/* Apply / Reset */}
+                             <div className="flex gap-2 pt-2">
+                                <button 
+                                  onClick={handleFilterApply}
+                                  className="flex-1 bg-[#8B8A6C] hover:bg-[#7A795B] text-white font-bold py-2 rounded-lg transition-colors"
+                                >
+                                  فلترة
+                                </button>
+                                <button 
+                                  onClick={handleFilterReset}
+                                  className="px-4 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 rounded-lg transition-colors"
+                                >
+                                  إعادة تعيين
+                                </button>
+                             </div>
                         </div>
                     </div>
                 )}
@@ -273,18 +368,13 @@ export default function AccountsTable() {
                   <td colSpan={columns.length} className="py-8 text-center">
                     <div className="flex items-center justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8B8A6C]"></div>
-                      <span className="mr-2 text-gray-500">
-                        جاري التحميل...
-                      </span>
+                      <span className="mr-2 text-gray-500">جاري التحميل...</span>
                     </div>
                   </td>
                 </tr>
               ) : table.getRowModel().rows.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="py-8 text-center text-gray-500"
-                  >
+                  <td colSpan={columns.length} className="py-8 text-center text-gray-500">
                     لا يوجد مستخدمون متاحون
                   </td>
                 </tr>
@@ -309,41 +399,35 @@ export default function AccountsTable() {
 
         {/* Pagination Section */}
         <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-50">
-          <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
-            <span>
-              {table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize +
-                1}{" "}
-              -{" "}
-              {Math.min(
-                (table.getState().pagination.pageIndex + 1) *
-                  table.getState().pagination.pageSize,
-                data.length
-              )}{" "}
-              من {data.length}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[#8B8A6C]">رقم السطر :</span>
-            <div className="flex items-center gap-2 bg-[#8B8A6C] text-white px-2 py-1 rounded">
-              <span>{table.getState().pagination.pageSize}</span>
-              <ChevronDown className="w-3 h-3" />
+            <div className="flex items-center gap-4 text-sm text-gray-500 font-medium">
+                <span>
+                  {totalItems > 0 ? ((currentPageFromAPI - 1) * perPage + 1) : 0}{" "}
+                  -{" "}
+                  {Math.min(currentPageFromAPI * perPage, totalItems)}{" "}
+                  من {totalItems}
+                </span>
             </div>
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          </div>
+            <div className="flex items-center gap-2">
+                <span className="text-[#8B8A6C]">رقم السطر :</span>
+                <div className="flex items-center gap-2 bg-[#8B8A6C] text-white px-2 py-1 rounded">
+                  <span>{perPage}</span>
+                  <ChevronDown className="w-3 h-3" />
+                </div>
+                <button
+                  onClick={() => handlePageChange(currentPageFromAPI - 1)}
+                  disabled={currentPageFromAPI <= 1}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPageFromAPI + 1)}
+                  disabled={currentPageFromAPI >= lastPage}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#8B8A6C] text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <ChevronLeft className="w-4 h-4" />
+                </button>
+            </div>
         </div>
       </div>
       

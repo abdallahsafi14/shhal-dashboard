@@ -58,9 +58,9 @@ export default function Header({ onMenuClick }) {
 
           {/* Icons Group */}
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="p-2 rounded-full border border-gray-100 hover:bg-gray-50 text-gray-400 hover:text-primary transition-all">
+            {/* <button className="p-2 rounded-full border border-gray-100 hover:bg-gray-50 text-gray-400 hover:text-primary transition-all">
               <Bell className="w-5 h-5" />
-            </button>
+            </button> */}
             
             <Link href="/settings" className="p-2 rounded-full border border-gray-100 hover:bg-gray-50 text-gray-400 hover:text-primary transition-all">
               <Settings className="w-5 h-5" />
