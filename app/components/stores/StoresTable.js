@@ -16,6 +16,7 @@ import {
   MapPin,
 } from "lucide-react";
 import EditStoreModal from "./EditStoreModal";
+import DeleteConfirmModal from "@/app/components/shared/DeleteConfirmModal";
 import { useStores, useStoreActions } from "@/hooks/useDashboard";
 
 export default function StoresTable() {
@@ -41,6 +42,8 @@ export default function StoresTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const handleEditClick = (store) => {
     setSelectedStore(store);
@@ -48,8 +51,15 @@ export default function StoresTable() {
   };
 
   const handleDeleteClick = (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا المتجر؟")) {
-      deleteStore(id);
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTargetId) {
+      deleteStore(deleteTargetId);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetId(null);
     }
   };
 
@@ -292,6 +302,12 @@ export default function StoresTable() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         store={selectedStore}
+      />
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setDeleteTargetId(null); }}
+        onConfirm={handleDeleteConfirm}
+        title="هل أنت متأكد من حذف هذا المتجر؟"
       />
     </>
   );

@@ -237,7 +237,7 @@ export default function PointsTable() {
 
   return (
     <>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 min-h-[600px] relative">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6    relative">
         {/* Top Filter Section */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 relative z-20">
           {/* Right Side: Search */}

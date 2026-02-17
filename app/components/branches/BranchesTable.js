@@ -16,6 +16,7 @@ import {
   MapPin,
 } from "lucide-react";
 import EditBranchModal from "./EditBranchModal";
+import DeleteConfirmModal from "@/app/components/shared/DeleteConfirmModal";
 import { useBranches, useBranchesByStore, useBranchActions } from "@/hooks/useDashboard";
 
 export default function BranchesTable({ selectedStoreId }) {
@@ -60,6 +61,8 @@ export default function BranchesTable({ selectedStoreId }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const handleEditClick = (branch) => {
     setSelectedBranch(branch);
@@ -67,8 +70,15 @@ export default function BranchesTable({ selectedStoreId }) {
   };
 
   const handleDeleteClick = (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذا الفرع؟")) {
-      deleteBranch(id);
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTargetId) {
+      deleteBranch(deleteTargetId);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetId(null);
     }
   };
 
@@ -332,6 +342,12 @@ export default function BranchesTable({ selectedStoreId }) {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         branch={selectedBranch}
+      />
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setDeleteTargetId(null); }}
+        onConfirm={handleDeleteConfirm}
+        title="هل أنت متأكد من حذف هذا الفرع؟"
       />
     </>
   );

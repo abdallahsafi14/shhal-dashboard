@@ -7,7 +7,7 @@ import {
   getFilteredRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { ChevronDown, Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useOrders } from "@/hooks/useDashboard";
@@ -150,26 +150,6 @@ export default function OrdersTable() {
                  </span>
             );
         }
-      },
-      {
-        id: "actions",
-        header: "", 
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-            <button className="text-[#0E3A53] hover:text-[#062b40] transition-colors">
-              <Trash2 className="w-4 h-4" />
-            </button>
-            <button 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    handleRowClick(row.original);
-                }} 
-                className="text-[#0E3A53] hover:text-[#062b40] transition-colors"
-             >
-              <Edit2 className="w-4 h-4" />
-            </button>
-          </div>
-        ),
       },
     ],
     [router]

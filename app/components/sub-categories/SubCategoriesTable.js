@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import EditSubCategoryModal from "./EditSubCategoryModal";
+import DeleteConfirmModal from "@/app/components/shared/DeleteConfirmModal";
 import { useSubCategories, useSubCategoriesByCategory, useSubCategoryActions } from "@/hooks/useDashboard";
 
 export default function SubCategoriesTable({ selectedCategoryId }) {
@@ -58,6 +59,8 @@ export default function SubCategoriesTable({ selectedCategoryId }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const handleEditClick = (subCategory) => {
     setSelectedSubCategory(subCategory);
@@ -65,8 +68,15 @@ export default function SubCategoriesTable({ selectedCategoryId }) {
   };
 
   const handleDeleteClick = (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه الفئة الفرعية؟")) {
-      deleteSubCategory(id);
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTargetId) {
+      deleteSubCategory(deleteTargetId);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetId(null);
     }
   };
 
@@ -317,6 +327,12 @@ export default function SubCategoriesTable({ selectedCategoryId }) {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         subCategory={selectedSubCategory}
+      />
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setDeleteTargetId(null); }}
+        onConfirm={handleDeleteConfirm}
+        title="هل أنت متأكد من حذف هذه الفئة الفرعية؟"
       />
     </>
   );

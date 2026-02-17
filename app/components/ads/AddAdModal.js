@@ -200,7 +200,7 @@ export default function AddAdModal({ isOpen, onClose }) {
 
             {/* Status */}
             <div className="relative">
-              <label className="absolute -top-3 right-4 bg-white px-1 text-sm font-bold text-[#0E3A53]">
+              <label className="absolute -top-3 right-4 bg-white px-1 text-sm font-bold text-[#0E3A53] z-10">
                 الحالة *
               </label>
               <div className="relative">

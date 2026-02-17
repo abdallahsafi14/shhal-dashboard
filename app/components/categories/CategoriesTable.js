@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import EditCategoryModal from "./EditCategoryModal";
-
+import DeleteConfirmModal from "@/app/components/shared/DeleteConfirmModal";
 import { useCategories, useCategoryActions } from "@/hooks/useDashboard";
 
 export default function CategoriesTable() {
@@ -60,6 +60,8 @@ export default function CategoriesTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const handleEditClick = (category) => {
     setSelectedCategory(category);
@@ -67,8 +69,15 @@ export default function CategoriesTable() {
   };
 
   const handleDeleteClick = (id) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه الفئة؟")) {
-      deleteCategory(id);
+    setDeleteTargetId(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTargetId) {
+      deleteCategory(deleteTargetId);
+      setIsDeleteModalOpen(false);
+      setDeleteTargetId(null);
     }
   };
 
@@ -383,6 +392,12 @@ export default function CategoriesTable() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         category={selectedCategory}
+      />
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setDeleteTargetId(null); }}
+        onConfirm={handleDeleteConfirm}
+        title="هل أنت متأكد من حذف هذه الفئة؟"
       />
     </>
   );
