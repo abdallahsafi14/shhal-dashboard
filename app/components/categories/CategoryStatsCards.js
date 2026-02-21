@@ -13,7 +13,6 @@ import { useCategoryStats } from "@/hooks/useDashboard";
 export default function CategoryStatsCards() {
   const { data: statsData, isLoading } = useCategoryStats({ days: 5 });
   const stat = statsData?.data;
-  console.log(stat);
 
   const stats = [
     {
